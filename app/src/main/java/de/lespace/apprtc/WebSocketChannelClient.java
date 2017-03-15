@@ -10,17 +10,16 @@
 
 package de.lespace.apprtc;
 
-import android.util.Log;
-
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketState;
 
-import de.lespace.apprtc.util.LooperExecutor;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.util.Log;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -28,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
+
+import de.lespace.apprtc.util.LooperExecutor;
 
 
 /**
