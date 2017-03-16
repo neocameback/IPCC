@@ -90,34 +90,32 @@ public class ChatTextFragment extends Fragment implements View.OnClickListener, 
   public void initView(ConversationAdapter adapter) {
     mConversationRv.setAdapter(adapter);
     mConversationRv.addOnScrollListener(new RecyclerView.OnScrollListener() {
-      boolean isTouch;
+      boolean isTouch = false;
+      int y;
 
       @Override
       public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
-        LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
-        int pos = lm.findFirstCompletelyVisibleItemPosition();
-        if (pos == 0 && isTouch) {
-          isTouch = false;
-          mLoadEarlierPb.setVisibility(View.VISIBLE);
-          Handler handler = new Handler();
-          handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-              mLoadEarlierPb.setVisibility(View.GONE);
-            }
-          }, 3000);
-          //// TODO: 3/16/2017 load earlier messages
-        }
+        y = dy;
       }
 
       @Override
       public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
         super.onScrollStateChanged(recyclerView, newState);
-
-        if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
-          // Do something
-          isTouch = true;
+        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+          LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
+          int pos = lm.findFirstCompletelyVisibleItemPosition();
+          if ((pos == 0 || pos == -1) && y <= 0) {
+            mLoadEarlierPb.setVisibility(View.VISIBLE);
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+              @Override
+              public void run() {
+                mLoadEarlierPb.setVisibility(View.GONE);
+              }
+            }, 3000);
+            //// TODO: 3/16/2017 load earlier messages
+          }
         }
       }
     });
