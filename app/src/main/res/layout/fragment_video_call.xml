@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+
+  <de.lespace.apprtc.videocall.AutoFitTextureView
+    android:id="@+id/texture"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_alignParentStart="true"
+    android:layout_alignParentTop="true"/>
+
+  <de.lespace.apprtc.videocall.AutoFitTextureView
+    android:id="@+id/video_call_owner_texture"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:layout_alignParentEnd="true"
+    android:layout_centerVertical="true"
+    android:layout_marginEnd="20dp"/>
+
+  <RelativeLayout
+    style="@style/ToolBarCommon">
+    <ImageView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="@android:color/black"
+      android:alpha="0.4"/>
+    <ImageView
+      android:layout_width="?android:actionBarSize"
+      android:layout_height="match_parent"
+      android:src="@drawable/ic_left_arrow"
+      android:id="@+id/back_iv"
+      android:padding="@dimen/padding_medium"/>
+
+    <TextView
+      style="@style/ToolBarTitle"
+      android:text="@string/title_example"
+      android:layout_centerVertical="true"
+      android:layout_toEndOf="@+id/back_iv"/>
+  </RelativeLayout>
+
+  <LinearLayout
+    style="@style/ToolBarCommon"
+    android:orientation="horizontal"
+    android:layout_alignParentBottom="true">
+
+    <ImageView
+      style="@style/VideoCallImage"
+      android:id="@+id/end_call_iv"
+      android:src="@drawable/disconnect"/>
+
+    <ImageView
+      style="@style/VideoCallImage"
+      android:id="@+id/mute_audio_iv"
+      android:src="@drawable/ic_mute_microphone"/>
+
+    <ImageView
+      style="@style/VideoCallImage"
+      android:id="@+id/swap_camera_iv"
+      android:src="@drawable/ic_photo_camera"/>
+
+    <ImageView
+      style="@style/VideoCallImage"
+      android:id="@+id/scale_video_iv"
+      android:src="@drawable/ic_action_return_from_full_screen"/>
+  </LinearLayout>
+</RelativeLayout>
