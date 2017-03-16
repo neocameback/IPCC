@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="action_text">#0084ff</color>
+    <color name="action_text_disable">#949998</color>
+    <color name="message_partner">#eeeeee</color>
+    <color name="message_owner">#0084ff</color>
+</resources>
