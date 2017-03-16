@@ -123,7 +123,14 @@ public class DraggableService extends Service {
   public void onDestroy() {
     super.onDestroy();
 
+    if (mTextureViewll != null)
+      window.removeView(mTextureViewll);
 //    window.removeView(mTextureViewll);
+  }
+
+  @Override
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    return START_NOT_STICKY;
   }
 
   @Override
