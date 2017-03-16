@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
 import de.lespace.apprtc.R;
-import de.lespace.apprtc.chat.ChatTextFragment;
 
 /**
  * activity video call demo
@@ -19,7 +18,7 @@ public class VideoCallActivity extends FragmentActivity {
     setContentView(R.layout.activity_camera);
     if (null == savedInstanceState) {
       getSupportFragmentManager().beginTransaction()
-          .replace(R.id.container, ChatTextFragment.newInstance())
+          .replace(R.id.container, VideoCallFragment.newInstance())
           .commit();
     }
   }
