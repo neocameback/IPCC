@@ -10,8 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_small"
-        app:cmv_backgroundColor="#88BABABA"
-        app:cmv_backgroundColorPressed="#FFBABABA"
+        app:cmv_backgroundColor="@color/item_one_message_partner_cv"
         app:cmv_cornerRadius="10dp"
         app:cmv_showArrow="false">
 
