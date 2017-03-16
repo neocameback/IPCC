@@ -7,4 +7,5 @@
     <color name="action_text_disable">#949998</color>
     <color name="message_partner">#eeeeee</color>
     <color name="message_owner">#0084ff</color>
+    <color name="item_one_message_partner_cv">#FFBABABA</color>
 </resources>

@@ -11,13 +11,14 @@
     android:layout_alignParentStart="true"
     android:layout_alignParentTop="true"/>
 
-  <de.lespace.apprtc.videocall.AutoFitTextureView
-    android:id="@+id/video_call_owner_texture"
-    android:layout_width="100dp"
-    android:layout_height="100dp"
-    android:layout_alignParentEnd="true"
-    android:layout_centerVertical="true"
-    android:layout_marginEnd="20dp"/>
+  <!--<de.lespace.apprtc.videocall.AutoFitTextureView-->
+    <!--android:id="@+id/video_call_owner_texture"-->
+    <!--android:layout_width="100dp"-->
+    <!--android:layout_height="100dp"-->
+    <!--android:visibility="gone"-->
+    <!--android:layout_alignParentEnd="true"-->
+    <!--android:layout_centerVertical="true"-->
+    <!--android:layout_marginEnd="20dp"/>-->
 
   <RelativeLayout
     style="@style/ToolBarCommon">

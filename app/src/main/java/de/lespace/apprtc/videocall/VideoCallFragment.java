@@ -8,6 +8,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
@@ -28,6 +30,7 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.content.ContextCompat;
@@ -66,6 +69,9 @@ public class VideoCallFragment extends Fragment
   private ImageView mBackIv, mEndCallIv, mMuteAudioIv, mSwapCameraIv, mScaleVideoIv;
   public static final String CAMERA_FRONT = "1";
   public static final String CAMERA_BACK = "0";
+
+  private DraggableService mService;
+  boolean mBound = false;
 
   /**
    * Conversion from screen rotation to JPEG orientation.
@@ -210,6 +216,8 @@ public class VideoCallFragment extends Fragment
       }
     }
 
+
+
     @Override
     public void onCaptureProgressed(@NonNull CameraCaptureSession session,
                                     @NonNull CaptureRequest request,
@@ -287,6 +295,51 @@ public class VideoCallFragment extends Fragment
 
   };
 
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    Intent intent = new Intent(getActivity(), DraggableService.class);
+    getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+  }
+
+//  @Override
+//  public void onStop() {
+//    super.onStop();
+//
+//    // Unbind from the service
+//    if (mBound) {
+//      getActivity().unbindService(mConnection);
+//      mBound = false;
+//      closeCamera();
+//    }
+//
+//  }
+//
+//
+
+
+  /** Defines callbacks for service binding, passed to bindService() */
+  private ServiceConnection mConnection = new ServiceConnection() {
+
+    @Override
+    public void onServiceConnected(ComponentName className,
+                                   IBinder service) {
+      // We've bound to LocalService, cast the IBinder and get LocalService instance
+      DraggableService.LocalBinder binder = (DraggableService.LocalBinder) service;
+      mService = binder.getService();
+      mBound = true;
+      mTextureView = mService.getTextureView();
+      reopenCamera();
+//      mService.setImageView(mImageView);
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName arg0) {
+      mBound = false;
+    }
+  };
+
   /**
    * Given {@code choices} of {@code Size}s supported by a camera, choose the smallest one that
    * is at least as large as the respective texture view size, and that is at most as large as the
@@ -350,7 +403,7 @@ public class VideoCallFragment extends Fragment
   public void onViewCreated(final View view, Bundle savedInstanceState) {
 //        view.findViewById(R.id.picture).setOnClickListener(this);
 //        view.findViewById(R.id.info).setOnClickListener(this);
-    mTextureView = (AutoFitTextureView) view.findViewById(R.id.video_call_owner_texture);
+//    mTextureView = (AutoFitTextureView) view.findViewById(R.id.video_call_owner_texture);
     mMuteAudioIv = (ImageView) view.findViewById(R.id.mute_audio_iv);
     mEndCallIv = (ImageView) view.findViewById(R.id.end_call_iv);
     mSwapCameraIv = (ImageView) view.findViewById(R.id.swap_camera_iv);
@@ -362,6 +415,8 @@ public class VideoCallFragment extends Fragment
     mSwapCameraIv.setOnClickListener(this);
     mScaleVideoIv.setOnClickListener(this);
     mBackIv.setOnClickListener(this);
+
+
   }
 
   @Override
@@ -376,12 +431,22 @@ public class VideoCallFragment extends Fragment
     // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
     // a camera and start preview from here (otherwise, we wait until the surface is ready in
     // the SurfaceTextureListener).
-    reopenCamera();
+//    reopenCamera();
+    if (!mBound) {
+      Intent intent = new Intent(getActivity(), DraggableService.class);
+      getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
   }
 
   @Override
   public void onPause() {
-    closeCamera();
+    // Unbind from the service
+    if (mBound) {
+      closeCamera();
+      mService.removeTextureView();
+      getActivity().unbindService(mConnection);
+      mBound = false;
+    }
     super.onPause();
   }
 
@@ -414,10 +479,12 @@ public class VideoCallFragment extends Fragment
   }
 
   public void reopenCamera() {
-    if (mTextureView.isAvailable()) {
-      openCamera(mTextureView.getWidth(), mTextureView.getHeight());
-    } else {
-      mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+    if (mTextureView != null) {
+      if (mTextureView.isAvailable()) {
+        openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+      } else {
+        mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+      }
     }
   }
 
