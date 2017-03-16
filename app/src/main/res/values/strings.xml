@@ -150,4 +150,7 @@
         sending the fetched token to the server or subscribing to the PubSub topic. Please try
         running the sample again.</string>
     <string name="no_audio" translatable="false">Switch off Audio</string>
+    <string name="title_example">Ngoc Hung</string>
+    <string name="request_permission">Need camera permisstion to video call</string>
+    <string name="camera_error">This device doesn\\\'t support Camera2 API.</string>
 </resources>
