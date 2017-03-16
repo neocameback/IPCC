@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+    <me.himanshusoni.chatmessageview.ChatMessageView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/item_each_message_bb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_small"
+        app:cmv_backgroundColor="#88BABABA"
+        app:cmv_backgroundColorPressed="#FFBABABA"
+        app:cmv_cornerRadius="10dp"
+        app:cmv_showArrow="false">
+
+        <TextView
+            android:id="@+id/item_one_message_content_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/item_one_message_time_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/item_one_message_content_tv"
+            android:textSize="@dimen/item_one_message_time_tv"/>
+
+    </me.himanshusoni.chatmessageview.ChatMessageView>
+</RelativeLayout>
