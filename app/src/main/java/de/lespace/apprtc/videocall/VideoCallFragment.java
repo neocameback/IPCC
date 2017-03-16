@@ -26,10 +26,13 @@ import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.DialogFragment;
@@ -55,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 
 import de.lespace.apprtc.R;
 
+import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
 
 ;
@@ -67,6 +71,7 @@ import static android.content.ContentValues.TAG;
 public class VideoCallFragment extends Fragment
     implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback {
 
+  private static final int CODE_DRAW_OVER_OTHER_APP_PERMISSION = 2084;
   private ImageView mBackIv, mEndCallIv, mMuteAudioIv, mSwapCameraIv, mScaleVideoIv;
   public static final String CAMERA_FRONT = "1";
   public static final String CAMERA_BACK = "0";
@@ -300,25 +305,18 @@ public class VideoCallFragment extends Fragment
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    Intent intent = new Intent(getActivity(), DraggableService.class);
-    getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-  }
+//    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+//            Uri.parse("package:" + getActivity().getPackageName()));
+//    startActivityForResult(intent, CODE_DRAW_OVER_OTHER_APP_PERMISSION);
 
-//  @Override
-//  public void onStop() {
-//    super.onStop();
-//
-//    // Unbind from the service
-//    if (mBound) {
-//      getActivity().unbindService(mConnection);
-//      mBound = false;
-//      closeCamera();
+//    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+//            == PackageManager.PERMISSION_GRANTED) {
+//      Intent intent = new Intent(getActivity(), DraggableService.class);
+//      getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//    } else {
+//      requestCameraPermission();
 //    }
-//
-//  }
-//
-//
-
+  }
 
   /** Defines callbacks for service binding, passed to bindService() */
   private ServiceConnection mConnection = new ServiceConnection() {
@@ -433,22 +431,46 @@ public class VideoCallFragment extends Fragment
     // a camera and start preview from here (otherwise, we wait until the surface is ready in
     // the SurfaceTextureListener).
 //    reopenCamera();
-    if (!mBound) {
-      Intent intent = new Intent(getActivity(), DraggableService.class);
-      getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-    }
-  }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getActivity())) {
 
+
+      //If the draw over permission is not available open the settings screen
+      //to grant the permission.
+      Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+              Uri.parse("package:" + getActivity().getPackageName()));
+      startActivityForResult(intent, CODE_DRAW_OVER_OTHER_APP_PERMISSION);
+    } else {
+      if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+              == PackageManager.PERMISSION_GRANTED) {
+        Intent intent = new Intent(getActivity(), DraggableService.class);
+        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+      } else {
+        requestCameraPermission();
+      }
+    }
+
+//    reopenCamera();
+//
+//    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+//            == PackageManager.PERMISSION_GRANTED) {
+//      Intent intent = new Intent(getActivity(), DraggableService.class);
+//      getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//    } else {
+//      requestCameraPermission();
+//    }
+  }
+//
   @Override
-  public void onPause() {
+  public void onStop() {
     // Unbind from the service
+//    closeCamera();
     if (mBound) {
       closeCamera();
       mService.removeTextureView();
       getActivity().unbindService(mConnection);
       mBound = false;
     }
-    super.onPause();
+    super.onStop();
   }
 
   @Override
@@ -480,12 +502,10 @@ public class VideoCallFragment extends Fragment
   }
 
   public void reopenCamera() {
-    if (mTextureView != null) {
-      if (mTextureView.isAvailable()) {
-        openCamera(mTextureView.getWidth(), mTextureView.getHeight());
-      } else {
-        mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
-      }
+    if (mTextureView.isAvailable()) {
+      openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+    } else {
+      mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
     }
   }
 
@@ -831,13 +851,40 @@ public class VideoCallFragment extends Fragment
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                          @NonNull int[] grantResults) {
     if (requestCode == REQUEST_CAMERA_PERMISSION) {
-      if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-        ErrorDialog.newInstance(getString(R.string.request_permission))
-            .show(getChildFragmentManager(), FRAGMENT_DIALOG);
+      if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//        ErrorDialog.newInstance(getString(R.string.request_permission))
+//            .show(getChildFragmentManager(), FRAGMENT_DIALOG);
+
+        Intent intent = new Intent(getActivity(), DraggableService.class);
+        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
       }
-    } else {
-      super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
   }
 
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//
+    if (requestCode == CODE_DRAW_OVER_OTHER_APP_PERMISSION) {
+//      //Check if the permission is granted or not.
+      if (resultCode == RESULT_OK) {
+//        initializeView();
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+          Intent intent = new Intent(getActivity(), DraggableService.class);
+          getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        } else {
+          requestCameraPermission();
+        }
+      } //Permission is not available
+////        Toast.makeText(this,
+////                "Draw over other app permission not available. Closing the application",
+////                Toast.LENGTH_SHORT).show();
+////
+////        finish();
+//      }
+    }
+    super.onActivityResult(requestCode, resultCode, data);
+  }
 }
