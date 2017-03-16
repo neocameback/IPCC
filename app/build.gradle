@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-  compileSdkVersion 23
-  buildToolsVersion '25.0.0'
+  compileSdkVersion 25
+  buildToolsVersion '25.0.2'
   sourceSets.main {
     jniLibs.srcDir 'libs'
     jni.srcDirs = [] //disable automatic ndk-build call
@@ -10,7 +10,7 @@ android {
   defaultConfig {
     applicationId "de.lespace.apprtc"
     minSdkVersion 21
-    targetSdkVersion 21
+    targetSdkVersion 25
 
     versionCode 11801
     versionName "r11801"
@@ -46,6 +46,7 @@ dependencies {
   compile "com.google.android.gms:play-services-gcm:9.6.1"
   compile files('libs/libjingle_peerconnection.jar')
   //compile files('path/to/lib.so')
+  compile "com.android.support:support-v13:25.1.1"
   compile 'com.google.android.gms:play-services-appindexing:9.6.1'
   compile 'com.android.support:recyclerview-v7:23.+'
   compile 'de.hdodenhof:circleimageview:2.1.0'

@@ -154,4 +154,7 @@
     <string name="chat_hint">Type a message...</string>
     <string name="someone_typing">%s is typing ...</string>
     <string name="lost_connection">Lost connection...</string>
+    <string name="title_example">Ngoc Hung</string>
+    <string name="request_permission">Need camera permisstion to video call</string>
+    <string name="camera_error">This device doesn\\\'t support Camera2 API.</string>
 </resources>
