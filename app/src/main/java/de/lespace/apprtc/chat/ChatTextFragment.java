@@ -1,7 +1,6 @@
 package de.lespace.apprtc.chat;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -86,44 +85,17 @@ public class ChatTextFragment extends Fragment implements View.OnClickListener, 
     }
   }
 
+  private static int firstVisibleInListview;
+
   @Override
   public void initView(ConversationAdapter adapter) {
     mConversationRv.setAdapter(adapter);
-    mConversationRv.addOnScrollListener(new RecyclerView.OnScrollListener() {
-      boolean isTouch = false;
-      int y;
-
-      @Override
-      public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        super.onScrolled(recyclerView, dx, dy);
-        y = dy;
-      }
-
-      @Override
-      public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-        super.onScrollStateChanged(recyclerView, newState);
-        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-          LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
-          int pos = lm.findFirstCompletelyVisibleItemPosition();
-          if ((pos == 0 || pos == -1) && y <= 0) {
-            mLoadEarlierPb.setVisibility(View.VISIBLE);
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-              @Override
-              public void run() {
-                mLoadEarlierPb.setVisibility(View.GONE);
-              }
-            }, 3000);
-            //// TODO: 3/16/2017 load earlier messages
-          }
-        }
-      }
-    });
-
+    final LinearLayoutManager mLinearLayoutManager = (LinearLayoutManager) mConversationRv.getLayoutManager();
   }
 
   @Override
   public void smoothScrollToBottom(int i) {
     mConversationRv.smoothScrollToPosition(i);
   }
+
 }
