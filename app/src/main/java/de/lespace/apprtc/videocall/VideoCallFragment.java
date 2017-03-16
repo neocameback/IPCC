@@ -4,8 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.Fragment;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -52,6 +52,8 @@ import java.util.concurrent.TimeUnit;
 import de.lespace.apprtc.R;
 
 import static android.content.ContentValues.TAG;
+
+;
 
 /**
  * fragment video call
@@ -540,8 +542,10 @@ public class VideoCallFragment extends Fragment
           .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-              FragmentCompat.requestPermissions(parent,
-                  new String[]{Manifest.permission.CAMERA},
+//              FragmentCompat.requestPermissions(parent,
+//                  new String[]{Manifest.permission.CAMERA},
+//                  REQUEST_CAMERA_PERMISSION);
+              parent.requestPermissions(new String[]{Manifest.permission.CAMERA},
                   REQUEST_CAMERA_PERMISSION);
             }
           })
@@ -747,10 +751,10 @@ public class VideoCallFragment extends Fragment
   }
 
   private void requestCameraPermission() {
-    if (FragmentCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+    if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
       new ConfirmationDialog().show(getChildFragmentManager(), FRAGMENT_DIALOG);
     } else {
-      FragmentCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},
+      requestPermissions(new String[]{Manifest.permission.CAMERA},
           REQUEST_CAMERA_PERMISSION);
     }
   }

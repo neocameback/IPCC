@@ -1,24 +1,25 @@
 package de.lespace.apprtc.videocall;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 
 import de.lespace.apprtc.R;
+import de.lespace.apprtc.chat.ChatTextFragment;
 
 /**
  * activity video call demo
  * Created by Quannv on 3/15/2017.
  */
 
-public class VideoCallActivity extends Activity {
+public class VideoCallActivity extends FragmentActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_camera);
     if (null == savedInstanceState) {
-      getFragmentManager().beginTransaction()
-          .replace(R.id.container, VideoCallFragment.newInstance())
+      getSupportFragmentManager().beginTransaction()
+          .replace(R.id.container, ChatTextFragment.newInstance())
           .commit();
     }
   }

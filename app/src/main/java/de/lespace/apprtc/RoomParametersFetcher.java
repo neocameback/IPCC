@@ -12,17 +12,13 @@ package de.lespace.apprtc;
 
 
 
-import android.util.Log;
-
-
 import com.neovisionaries.ws.client.WebSocket;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
+import android.util.Log;
 
+import java.io.InputStream;
 import java.util.Scanner;
 
 /**
@@ -51,6 +47,7 @@ public class RoomParametersFetcher {
 
   // Requests & returns a TURN ICE Server based on a request URL.  Must be run
   // off the main thread!
+  /**
   private void requestTurnServers()
       throws IOException, JSONException {
       Log.d(TAG, "Request TURN from websocket: ");
@@ -58,7 +55,7 @@ public class RoomParametersFetcher {
       WebSocketRTCClient.jsonPut(json, "id", "turn");
       wsClient.sendText(json.toString());
   }
-
+*/
 
 
   // Return the contents of an InputStream as a String.

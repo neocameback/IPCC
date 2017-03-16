@@ -24,6 +24,12 @@ import java.util.LinkedList;
 
 import de.lespace.apprtc.WebSocketChannelClient.WebSocketChannelEvents;
 import de.lespace.apprtc.WebSocketChannelClient.WebSocketConnectionState;
+import de.lespace.apprtc.constants.GsonWrapper;
+import de.lespace.apprtc.constants.MessageType;
+import de.lespace.apprtc.model.AppConfig;
+import de.lespace.apprtc.model.CandidateJ;
+import de.lespace.apprtc.model.Message;
+import de.lespace.apprtc.model.MessageData;
 import de.lespace.apprtc.util.LooperExecutor;
 
 /**
@@ -37,141 +43,163 @@ import de.lespace.apprtc.util.LooperExecutor;
  */
 public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents {
 
-    private static final String TAG = "WebSocketRTCClient";
-    private enum ConnectionState {
-        NEW, CONNECTED, CLOSED, ERROR
-    };
+  private static final String TAG = "WebSocketRTCClient";
 
-    private enum MessageType {
-        MESSAGE, LEAVE
-    };
-
-    private final LooperExecutor executor;
-    private boolean initiator;
-
-    private WebSocketChannelClient wsClient;
-    private WebSocketConnectionState socketState;
-    private RoomConnectionParameters connectionParameters;
-
-    private SignalingEvents signalingEvents;
-    public static  int userId;
-    public static int userId2;
-    public static String userName;
-    public static int conversationId;
-
-    public WebSocketRTCClient(SignalingEvents events, LooperExecutor executor) {
-        this.executor = executor;
-        this.socketState = WebSocketConnectionState.NEW;
-        this.signalingEvents = events;
-
-     executor.requestStart();
+  private enum ConnectionState {
+    NEW, CONNECTED, CLOSED, ERROR
   }
-    // --------------------------------------------------------------------
-    // WebSocketChannelEvents interface implementation.
-    // All events are called by WebSocketChannelClient on a local looper thread
-    // (passed to WebSocket client constructor).
-    @Override
-    public void onWebSocketMessage(final String msg){
+
+  ;
+
+//  private enum MessageType {
+//    MESSAGE, LEAVE
+//  }
+
+  ;
+
+  private final LooperExecutor executor;
+  private boolean initiator;
+
+  private WebSocketChannelClient wsClient;
+  private WebSocketConnectionState socketState;
+  private RoomConnectionParameters connectionParameters;
+
+  private SignalingEvents signalingEvents;
+  public static int userId;
+  public static int userId2;
+  public static String userName;
+  public static int conversationId;
+
+  public WebSocketRTCClient(SignalingEvents events, LooperExecutor executor) {
+    this.executor = executor;
+    this.socketState = WebSocketConnectionState.NEW;
+    this.signalingEvents = events;
+
+    executor.requestStart();
+  }
+
+  // --------------------------------------------------------------------
+  // WebSocketChannelEvents interface implementation.
+  // All events are called by WebSocketChannelClient on a local looper thread
+  // (passed to WebSocket client constructor).
+  @Override
+  public void onWebSocketMessage(final String msg) {
+//    try {
+      Message message = GsonWrapper.getGson().fromJson(msg, Message.class);
+//      JSONObject json = new JSONObject(msg);
+
+      AppConfig params = message.getParams();
+      if (params != null) {
+        Log.i(TAG, "Got appConfig" + msg + " parsing into roomParameters");
+        //this.roomParametersFetcher.parseAppConfig(msg);
+
+        Log.i(TAG, "app config: " + msg);
         try {
+//          JSONObject appConfig = new JSONObject(msg);
 
-            JSONObject json = new JSONObject(msg);
+          String result = message.getResult();
+          Log.i(TAG, "client debug ");
+          if (!result.equals("SUCCESS")) {
+            return;
+          }
 
-            if (json.has("params")) {
-                Log.i(TAG, "Got appConfig"+msg+" parsing into roomParameters");
-                //this.roomParametersFetcher.parseAppConfig(msg);
+//          String params = appConfig.getString("params");
+//          appConfig = new JSONObject(params);
+          LinkedList<PeerConnection.IceServer> iceServers = iceServersFromPCConfigJSON(params.getPcConfig());
 
-                    Log.i(TAG, "app config: " + msg);
-                    try {
-                        JSONObject appConfig = new JSONObject(msg);
+          AppRTCClient.SignalingParameters signalingParameters = new SignalingParameters(iceServers);
 
-                        String result = appConfig.getString("result");
-                        Log.i(TAG, "client debug ");
-                        if (!result.equals("SUCCESS")) {
-                            return;
-                        }
-
-                        String params = appConfig.getString("params");
-                        appConfig = new JSONObject(params);
-                        LinkedList<PeerConnection.IceServer> iceServers = iceServersFromPCConfigJSON(appConfig.getString("pc_config"));
-
-                        AppRTCClient.SignalingParameters signalingParameters = new SignalingParameters(iceServers);
-
-                        wsClient.register(connectionParameters.from);
-                    } catch (JSONException e) {
-                      signalingEvents.onChannelError("app config JSON parsing error: " + e.toString());
-                    }
-                 return;
-            }
+          wsClient.register(connectionParameters.from);
+        } catch (JSONException e) {
+          signalingEvents.onChannelError("app config JSON parsing error: " + e.toString());
+        }
+        return;
+      }
 
 //            if (socketState != WebSocketConnectionState.REGISTERED && socketState != WebSocketConnectionState.CONNECTED){
 //                Log.e(TAG, "websocket still in non registered state.");
 //                return;
 //            }
 
+      String id = "";
+      String response = "";
+      if (message.getType() != null) {
 
-            String id = "";
-            String response = "";
-            if(json.has("type")){
-                int type =json.getInt("type");
-                switch (type){
-                    case 37:
-                        //user register
-                        JSONObject userT= json.getJSONObject("data");
-                        userId = userT.getInt("userId");
-                        userName= userT.getString("name");
-                        //make call;
-                        socketState = WebSocketConnectionState.REGISTERED;
-                        makeCall();
-                        break;
+        MessageType type = message.getType();
+        switch (type) {
+          case CUSTOMER_LOGIN:
+            //user register
+//            JSONObject userT = json.getJSONObject("data");
+            MessageData data = message.getData();
+            userId = data.getUserId();
+//            userId = userT.getInt("userId");
+//            userName = userT.getString("name");
+            userName = data.getName().getAsString();
+            //make call;
+            socketState = WebSocketConnectionState.REGISTERED;
+            makeCall();
+            break;
 
-                    case 113: //video call processing
-                        JSONObject dataO= json.getJSONObject("data");
+          case VIDEO_CALL: //video call processing
+//            JSONObject dataO = json.getJSONObject("data");
+            MessageData dataO = message.getData();
 
-                        String idM= dataO.getString("id");
-                        if(idM.equals("joinRoom")){
-                            conversationId=dataO.getInt("conversationId");
-                            joinRoom();
-                        }
-                        if(idM.equals("existingParticipants")) {
-                            signalingEvents.onReciveCall();
-                        }
-                        if(idM.equals("iceCandidate")){
-                            //Log.d(TAG, "iceCandidate "+dataO.toString());
-                            int nameX= dataO.getInt("name");
-                            String candidateJ=dataO.getString("candidate");
-                            JSONObject candidateJson = new JSONObject(candidateJ);
-                            String sdpMid=candidateJson.getString("sdpMid");
-                            int sdpMLineIndex=candidateJson.getInt("sdpMLineIndex");
-                            String candidateStr=candidateJson.getString("candidate");
-                            IceCandidate candidate = new IceCandidate(
-                                    sdpMid,
-                                    sdpMLineIndex,
-                                    candidateStr);
-                            if(nameX==userId) {
-                                signalingEvents.onRemoteIceCandidate(candidate);
-                            }else{
-                                signalingEvents.onRemoteScreenIceCandidate(candidate);
-                            }
-                        }
-                        if(idM.equals("receiveVideoAnswer")){
-                            int nameX= dataO.getInt("name");
-                            Log.d(TAG, "sending sdpAnswer: "+dataO.getString("sdpAnswer"));
-                            SessionDescription sdp = new SessionDescription(
-                                    SessionDescription.Type.ANSWER,dataO.getString("sdpAnswer"));
-
-                            if(nameX==userId) {
-                                signalingEvents.onRemoteDescription(sdp);
-                            }else{
-                                signalingEvents.onRemoteScreenDescription(sdp);
-                            }
-                        }
-                        if(idM.equals("newParticipantArrived")){
-                            userId2 = dataO.getInt("name");
-                            signalingEvents.onIncomingScreenCall(json);
-                        }
-                        break;
-                }
+            String idM = dataO.getId();
+//            String idM = dataO.getString("id");
+            if (idM.equals("joinRoom")) {
+//              conversationId = dataO.getInt("conversationId");
+              conversationId = dataO.getConversationId();
+              joinRoom();
             }
+            if (idM.equals("existingParticipants")) {
+              signalingEvents.onReciveCall();
+            }
+            if (idM.equals("iceCandidate")) {
+              //Log.d(TAG, "iceCandidate "+dataO.toString());
+              int nameX = dataO.getName().getAsInt();
+//              int nameX = dataO.getInt("name");
+//              String candidateJ = dataO.getString("candidate");
+//              String candidateJ = dataO.getCandidate();
+              CandidateJ candidateJ = dataO.getCandidate();
+//              JSONObject candidateJson = new JSONObject(candidateJ);
+              String sdpMid = candidateJ.getSdpMid();
+              int sdpMLineIndex = candidateJ.getSdpMLineIndex();
+              String candidateStr = candidateJ.getCandidate();
+//              String sdpMid = candidateJson.getString("sdpMid");
+//              int sdpMLineIndex = candidateJson.getInt("sdpMLineIndex");
+//              String candidateStr = candidateJson.getString("candidate");
+              IceCandidate candidate = new IceCandidate(
+                  sdpMid,
+                  sdpMLineIndex,
+                  candidateStr);
+              if (nameX == userId) {
+                signalingEvents.onRemoteIceCandidate(candidate);
+              } else {
+                signalingEvents.onRemoteScreenIceCandidate(candidate);
+              }
+            }
+            if (idM.equals("receiveVideoAnswer")) {
+              int nameX = dataO.getName().getAsInt();
+//              Log.d(TAG, "sending sdpAnswer: " + dataO.getString("sdpAnswer"));
+              SessionDescription sdp = new SessionDescription(
+//                  SessionDescription.Type.ANSWER, dataO.getString("sdpAnswer"));
+                  SessionDescription.Type.ANSWER, dataO.getSdpAnswer());
+
+              if (nameX == userId) {
+                signalingEvents.onRemoteDescription(sdp);
+              } else {
+                signalingEvents.onRemoteScreenDescription(sdp);
+              }
+            }
+            if (idM.equals("newParticipantArrived")) {
+              userId2 = dataO.getName().getAsInt();
+              signalingEvents.onIncomingScreenCall(message);
+//              userId2 = dataO.getInt("name");
+//              signalingEvents.onIncomingScreenCall(json);
+            }
+            break;
+        }
+      }
             /*
             if(json.has("id")) id = json.getString("id");
 
@@ -288,10 +316,10 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
                 signalingEvents.onChannelScreenClose();
             }
             */
-        } catch (JSONException e) {
-            reportError("WebSocket message JSON parsing error: " + e.toString());
-        }
-    }
+//    } catch (JSONException e) {
+//      reportError("WebSocket message JSON parsing error: " + e.toString());
+//    }
+  }
 
   // --------------------------------------------------------------------
   // AppRTCClient interface implementation.
@@ -303,276 +331,383 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
     executor.execute(new Runnable() {
       @Override
       public void run() {
-          try {
-              connectToWebsocketInternal();
-          }catch(Exception e){
-              reportError("WebSocketerror: " + e.toString());
-          }
+        try {
+          connectToWebsocketInternal();
+        } catch (Exception e) {
+          reportError("WebSocketerror: " + e.toString());
+        }
       }
     });
   }
 
-    public void sendStopToPeer(){
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject jsonMessage = new JSONObject();
-                    jsonPut(jsonMessage, "id" , "stop");
+  public void sendStopToPeer() {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+//          JSONObject jsonMessage = new JSONObject();
+//          jsonPut(jsonMessage, "id", "stop");
+          Message message = new Message()
+              .setId("stop");
 
-                    wsClient.send(jsonMessage.toString());
-                }catch(Exception e){
-                    reportError("WebSocketerror: " + e.toString());
-                }
-            }
-        });
-    }
-
-    @Override
-  public void sendDisconnectToPeer() {
-        executor.execute(new Runnable() {
-          @Override
-          public void run() {
-            disconnectFromRoomInternal();
-          }
-        });
+          wsClient.send(message);
+        } catch (Exception e) {
+          reportError("WebSocketerror: " + e.toString());
+        }
+      }
+    });
   }
 
-    @Override
-    public void reconnect() {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-
-                disconnectFromRoomInternal();
-
-                try {
-                    connectToWebsocketInternal();
-                }catch(Exception e){
-                    reportError("WebSocketerror: " + e.toString());
-                }
-            }
-        });
-    }
-
-    @Override
-    public void initUser() {
-        //get info
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                JSONObject data = new JSONObject();
-                WebSocketRTCClient.jsonPut(data,"visitorId",-1);
-                WebSocketRTCClient.jsonPut(data,"visitorName","");
-                WebSocketRTCClient.jsonPut(data,"ip_address","192.168.0.132:8939");
-                WebSocketRTCClient.jsonPut(data, "host", "192.168.0.132:8939");
-                WebSocketRTCClient.jsonPut(data, "os", "");
-                WebSocketRTCClient.jsonPut(data, "browser", "");
-                WebSocketRTCClient.jsonPut(data, "device_type", "");
-                WebSocketRTCClient.jsonPut(data, "domain","LANT_TEST1");
-                WebSocketRTCClient.jsonPut(data, "country_name", "");
-                JSONObject json = new JSONObject();
-
-                WebSocketRTCClient.jsonPut(json,"service",37);
-                WebSocketRTCClient.jsonPut(json,"data",data);
-                wsClient.send(json.toString());
-            }
-        });
-
-    }
-
-    @Override
-    public void makeCall() {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-
-                JSONObject data= new JSONObject();
-                WebSocketRTCClient.jsonPut(data,"service_id",28);
-                WebSocketRTCClient.jsonPut(data,"conversationId",-1);
-                WebSocketRTCClient.jsonPut(data,"message","");
-                WebSocketRTCClient.jsonPut(data,"domain",14);
-                WebSocketRTCClient.jsonPut(data,"id","requestVideoCall");
-                JSONObject json= new JSONObject();
-                WebSocketRTCClient.jsonPut(json,"data",data);
-                WebSocketRTCClient.jsonPut(json,"service",113);
-                wsClient.send(json.toString());
-            }
-        });
-
-    }
-
-    @Override
-    public void joinRoom() {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                JSONObject data= new JSONObject();
-                WebSocketRTCClient.jsonPut(data,"service_id",28);
-                WebSocketRTCClient.jsonPut(data,"conversationId",conversationId);
-                WebSocketRTCClient.jsonPut(data,"message","");
-                WebSocketRTCClient.jsonPut(data,"domain",14);
-                WebSocketRTCClient.jsonPut(data,"id","joinRoom");
-                JSONObject json= new JSONObject();
-                WebSocketRTCClient.jsonPut(json,"data",data);
-                WebSocketRTCClient.jsonPut(json,"service",113);
-                wsClient.send(json.toString());
-            }
-        });
-    }
-
-    // Connects to websocket - function runs on a local looper thread.
-      private void connectToWebsocketInternal() {
-
-          String connectionUrl = getConnectionUrl(connectionParameters);
-
-          socketState = WebSocketConnectionState.NEW;
-          wsClient = new WebSocketChannelClient(executor, this);
-          wsClient.connect(connectionUrl);
-          socketState = WebSocketConnectionState.CONNECTED;
-          Log.d(TAG, "wsClient connect " + connectionUrl);
-
+  @Override
+  public void sendDisconnectToPeer() {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        disconnectFromRoomInternal();
       }
+    });
+  }
 
-      // Disconnect from room and send bye messages - runs on a local looper thread.
-      private void disconnectFromRoomInternal() {
-        Log.d(TAG, "Disconnect. Room state: " + socketState);
+  @Override
+  public void reconnect() {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+
+        disconnectFromRoomInternal();
+
+        try {
+          connectToWebsocketInternal();
+        } catch (Exception e) {
+          reportError("WebSocketerror: " + e.toString());
+        }
+      }
+    });
+  }
+
+  @Override
+  public void initUser() {
+    //get info
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+//        JSONObject data = new JSONObject();
+//        WebSocketRTCClient.jsonPut(data, "visitorId", -1);
+//        WebSocketRTCClient.jsonPut(data, "visitorName", "");
+//        WebSocketRTCClient.jsonPut(data, "ip_address", "192.168.0.132:8939");
+//        WebSocketRTCClient.jsonPut(data, "host", "192.168.0.132:8939");
+//        WebSocketRTCClient.jsonPut(data, "os", "");
+//        WebSocketRTCClient.jsonPut(data, "browser", "");
+//        WebSocketRTCClient.jsonPut(data, "device_type", "");
+//        WebSocketRTCClient.jsonPut(data, "domain", "LANT_TEST1");
+//        WebSocketRTCClient.jsonPut(data, "country_name", "");
+//        JSONObject json = new JSONObject();
+//
+//        WebSocketRTCClient.jsonPut(json, "service", 37);
+//        WebSocketRTCClient.jsonPut(json, "data", data);
+
+        // Todo question
+        MessageData data = new MessageData()
+            .setVisitorId(-1)
+            .setVisitorName("")
+            .setIpAddress("192.168.0.132:8939")
+            .setHost("192.168.0.132:8939")
+            .setOs("")
+            .setBrowser("")
+            .setDeviceType("")
+            .setDomain("LANT_TEST1")
+            .setCountryName("");
+
+        Message message = new Message()
+            .setData(data)
+            .setService(37);
+
+        wsClient.send(message);
+      }
+    });
+
+  }
+
+  @Override
+  public void makeCall() {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+
+        MessageData data = new MessageData()
+            .setServiceId("28")
+            .setConversationId(-1)
+            .setMessage("")
+            .setDomain("LANT_TEST1")
+            .setId("requestVideoCall");
+        Message message = new Message()
+            .setData(data)
+            .setService(113);
+//        JSONObject data = new JSONObject();
+//        WebSocketRTCClient.jsonPut(data, "service_id", 28);
+//        WebSocketRTCClient.jsonPut(data, "conversationId", -1);
+//        WebSocketRTCClient.jsonPut(data, "message", "");
+//        WebSocketRTCClient.jsonPut(data, "domain", 14);
+//        WebSocketRTCClient.jsonPut(data, "id", "requestVideoCall");
+//        JSONObject json = new JSONObject();
+//        WebSocketRTCClient.jsonPut(json, "data", data);
+//        WebSocketRTCClient.jsonPut(json, "service", 113);
+//        wsClient.send(json.toString());
+        wsClient.send(message);
+      }
+    });
+
+  }
+
+  @Override
+  public void joinRoom() {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+//        JSONObject data = new JSONObject();
+//        WebSocketRTCClient.jsonPut(data, "service_id", 28);
+//        WebSocketRTCClient.jsonPut(data, "conversationId", conversationId);
+//        WebSocketRTCClient.jsonPut(data, "message", "");
+//        WebSocketRTCClient.jsonPut(data, "domain", 14);
+//        WebSocketRTCClient.jsonPut(data, "id", "joinRoom");
+//        JSONObject json = new JSONObject();
+//        WebSocketRTCClient.jsonPut(json, "data", data);
+//        WebSocketRTCClient.jsonPut(json, "service", 113);
+
+        // todo question
+        MessageData data = new MessageData()
+            .setServiceId("28")
+            .setConversationId(conversationId)
+            .setMessage("")
+            .setDomain("14")
+            .setId("joinRoom");
+
+        Message message = new Message()
+            .setData(data)
+            .setService(113);
+
+        wsClient.send(message);
+      }
+    });
+  }
+
+  // Connects to websocket - function runs on a local looper thread.
+  private void connectToWebsocketInternal() {
+
+    String connectionUrl = getConnectionUrl(connectionParameters);
+
+    socketState = WebSocketConnectionState.NEW;
+    wsClient = new WebSocketChannelClient(executor, this);
+    wsClient.connect(connectionUrl);
+    socketState = WebSocketConnectionState.CONNECTED;
+    Log.d(TAG, "wsClient connect " + connectionUrl);
+
+  }
+
+  // Disconnect from room and send bye messages - runs on a local looper thread.
+  private void disconnectFromRoomInternal() {
+    Log.d(TAG, "Disconnect. Room state: " + socketState);
 //        if (socketState == WebSocketConnectionState.CONNECTED
 //                || socketState == WebSocketConnectionState.NEW
 //                || socketState == WebSocketConnectionState.REGISTERED)
-        {
-            Log.d(TAG, "Closing room.");
-            JSONObject data= new JSONObject();
-            WebSocketRTCClient.jsonPut(data,"service_id",28);
-            WebSocketRTCClient.jsonPut(data,"conversationId",conversationId);
-            WebSocketRTCClient.jsonPut(data,"domain",14);
-            WebSocketRTCClient.jsonPut(data,"id","endVideoCall");
-            JSONObject json= new JSONObject();
-            WebSocketRTCClient.jsonPut(json,"data",data);
-            WebSocketRTCClient.jsonPut(json,"service",113);
-            wsClient.send(json.toString());
-            //wsClient.disconnect(true);
-        }
-      }
+    {
+      Log.d(TAG, "Closing room.");
+//      JSONObject data = new JSONObject();
+//      WebSocketRTCClient.jsonPut(data, "service_id", 28);
+//      WebSocketRTCClient.jsonPut(data, "conversationId", conversationId);
+//      WebSocketRTCClient.jsonPut(data, "domain", 14);
+//      WebSocketRTCClient.jsonPut(data, "id", "endVideoCall");
+//      JSONObject json = new JSONObject();
+//      WebSocketRTCClient.jsonPut(json, "data", data);
+//      WebSocketRTCClient.jsonPut(json, "service", 113);
 
-      // Helper functions to get connection, sendSocketMessage message and leave message URLs
-      private String getConnectionUrl(RoomConnectionParameters connectionParameters) {
-            return connectionParameters.roomUrl+"/websocket";
-      }
+      // todo
+      MessageData data = new MessageData()
+          .setServiceId(28 + "")
+          .setConversationId(conversationId)
+          .setDomain("14")
+          .setId("endVideoCall");
 
-    // Return the list of ICE servers described by a WebRTCPeerConnection
-    // configuration string.
-    public static LinkedList<PeerConnection.IceServer> iceServersFromPCConfigJSON(String pcConfig) throws JSONException {
-        JSONObject json = new JSONObject(pcConfig);
-        Log.d(TAG, "current pcConfig: " + pcConfig);
-        LinkedList<PeerConnection.IceServer> iceServers = new LinkedList<PeerConnection.IceServer>();
-        JSONArray iceServersArray = json.getJSONArray("iceServers");
-        for (int i = 0; i < iceServersArray.length(); i++) {
-            JSONObject iceJson  = iceServersArray.getJSONObject(i);
+      Message message = new Message()
+          .setData(data)
+          .setService(113);
 
-            String username = iceJson.getString("username");
-            String password = iceJson.getString("password");
-            JSONArray iceUris = iceJson.getJSONArray("urls");
-
-            for (int j = 0; j < iceUris.length(); j++) {
-                String uri = iceUris.getString(j);
-                Log.d(TAG, "adding ice server: " + uri + " username:" + username + " password:" + password);
-                iceServers.add(new PeerConnection.IceServer(uri, username, password));
-            }
-        }
-        return iceServers;
+      wsClient.send(message);
+      //wsClient.disconnect(true);
     }
+  }
 
-      public void call(final SessionDescription sdp)  {
-          executor.execute(new Runnable() {
-              @Override
-              public void run() {
+  // Helper functions to get connection, sendSocketMessage message and leave message URLs
+  private String getConnectionUrl(RoomConnectionParameters connectionParameters) {
+    return connectionParameters.roomUrl + "/websocket";
+  }
+
+  // Return the list of ICE servers described by a WebRTCPeerConnection
+  // configuration string.
+  public static LinkedList<PeerConnection.IceServer> iceServersFromPCConfigJSON(String pcConfig) throws JSONException {
+    JSONObject json = new JSONObject(pcConfig);
+    Log.d(TAG, "current pcConfig: " + pcConfig);
+    LinkedList<PeerConnection.IceServer> iceServers = new LinkedList<PeerConnection.IceServer>();
+    JSONArray iceServersArray = json.getJSONArray("iceServers");
+    for (int i = 0; i < iceServersArray.length(); i++) {
+      JSONObject iceJson = iceServersArray.getJSONObject(i);
+
+      String username = iceJson.getString("username");
+      String password = iceJson.getString("password");
+      JSONArray iceUris = iceJson.getJSONArray("urls");
+
+      for (int j = 0; j < iceUris.length(); j++) {
+        String uri = iceUris.getString(j);
+        Log.d(TAG, "adding ice server: " + uri + " username:" + username + " password:" + password);
+        iceServers.add(new PeerConnection.IceServer(uri, username, password));
+      }
+    }
+    return iceServers;
+  }
+
+  public void call(final SessionDescription sdp) {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
 //                  if (socketState != WebSocketConnectionState.REGISTERED) {
 //                      reportError("Sending offer SDP in non registered state.");
 //                      return;
 //                  }
 
-                  JSONObject json = new JSONObject();
-                  JSONObject dataJ = new JSONObject();
-                  jsonPut(dataJ,"service_id",28);
-                  jsonPut(dataJ,"conversationId",conversationId);
-                  jsonPut(dataJ,"domain",14);
-                  jsonPut(dataJ,"id","receiveVideoFrom");
-                  jsonPut(dataJ,"sender",userId);
-                  jsonPut(dataJ, "sdpOffer", sdp.description);
-                  jsonPut(json,"service",113);
-                  jsonPut(json,"data",dataJ);
-                  wsClient.send(json.toString());
+//        JSONObject json = new JSONObject();
+//        JSONObject dataJ = new JSONObject();
+//        jsonPut(dataJ, "service_id", 28);
+//        jsonPut(dataJ, "conversationId", conversationId);
+//        jsonPut(dataJ, "domain", 14);
+//        jsonPut(dataJ, "id", "receiveVideoFrom");
+//        jsonPut(dataJ, "sender", userId);
+//        jsonPut(dataJ, "sdpOffer", sdp.description);
+//        jsonPut(json, "service", 113);
+//        jsonPut(json, "data", dataJ);
 
-              }
-          });
+        MessageData data = new MessageData()
+            .setServiceId("28")
+            .setConversationId(conversationId)
+            .setDomain("14")
+            .setId("receiveVideoFrom")
+            .setSender(userId + "")
+            .setSdpOffer(sdp.description);
+
+        // todo
+        Message message = new Message()
+            .setData(data)
+            .setService(113);
+
+        wsClient.send(message);
+
       }
+    });
+  }
 
-      // Send local answer SDP to the other participant.
+  // Send local answer SDP to the other participant.
+  @Override
+  public void sendOfferSdp(final SessionDescription sdp, final boolean isScreenSharing) {
+    executor.execute(new Runnable() {
       @Override
-      public void sendOfferSdp(final SessionDescription sdp, final boolean isScreenSharing) {
-        executor.execute(new Runnable() {
-          @Override
-          public void run() {
+      public void run() {
 
-              JSONObject json = new JSONObject();
-              JSONObject dataJ = new JSONObject();
-              jsonPut(dataJ,"service_id",28);
-              jsonPut(dataJ,"conversationId",conversationId);
-              jsonPut(dataJ,"domain",14);
-              jsonPut(dataJ,"id","receiveVideoFrom");
-              if(isScreenSharing)
-              jsonPut(dataJ,"sender",userId2);else{
-                  jsonPut(dataJ,"sender",userId);
-              }
-              jsonPut(dataJ, "sdpOffer", sdp.description);
-              jsonPut(json,"service",113);
-              jsonPut(json,"data",dataJ);
-              wsClient.send(json.toString());
+//        JSONObject json = new JSONObject();
+//        JSONObject dataJ = new JSONObject();
+//        jsonPut(dataJ, "service_id", 28);
+//        jsonPut(dataJ, "conversationId", conversationId);
+//        jsonPut(dataJ, "domain", 14);
+//        jsonPut(dataJ, "id", "receiveVideoFrom");
+//        if (isScreenSharing)
+//          jsonPut(dataJ, "sender", userId2);
+//        else {
+//          jsonPut(dataJ, "sender", userId);
+//        }
+//        jsonPut(dataJ, "sdpOffer", sdp.description);
+//        jsonPut(json, "service", 113);
+//        jsonPut(json, "data", dataJ);
 
-          }
-        });
+        MessageData data = new MessageData()
+            .setServiceId(28 + "")
+            .setConversationId(conversationId)
+            .setDomain("14")
+            .setId("receiveVideoFrom")
+            .setSdpOffer(sdp.description);
+
+        if (isScreenSharing) {
+          data.setSender(userId2 + "");
+        } else {
+          data.setSender(userId + "");
+        }
+
+        Message message = new Message()
+            .setService(113)
+            .setData(data);
+        wsClient.send(message);
+
       }
+    });
+  }
 
-      // Send Ice candidate to the other participant.
+  // Send Ice candidate to the other participant.
+  @Override
+  public void sendLocalIceCandidate(final IceCandidate candidate, final boolean isScreenSharing) {
+    executor.execute(new Runnable() {
       @Override
-      public void sendLocalIceCandidate(final IceCandidate candidate,  final boolean isScreenSharing) {
-        executor.execute(new Runnable() {
-          @Override
-          public void run() {
+      public void run() {
 
-            JSONObject json = new JSONObject();
-              JSONObject data= new JSONObject();
-              JSONObject candidateJ =new JSONObject();
-              jsonPut(candidateJ, "candidate", candidate.sdp);
-              jsonPut(candidateJ, "sdpMid", candidate.sdpMid);
-              jsonPut(candidateJ, "sdpMLineIndex", candidate.sdpMLineIndex);
-              jsonPut(data, "id", "onIceCandidate");
-              if(!isScreenSharing)  jsonPut(data,"name",userId);
-              else   jsonPut(data,"name",userId2);
-              jsonPut(data, "service_id",28);
-              jsonPut(data, "conversationId",conversationId);
-              jsonPut(data, "domain",14);
-              jsonPut(data,"candidate",candidateJ);
-              jsonPut(json,"service",113);
-              jsonPut(json,"data",data);
-              // Call receiver sends ice candidates to websocket server.
-              wsClient.send(json.toString());
-          }
-        });
+//        JSONObject json = new JSONObject();
+//        JSONObject data = new JSONObject();
+//        JSONObject candidateJ = new JSONObject();
+//        jsonPut(candidateJ, "candidate", candidate.sdp);
+//        jsonPut(candidateJ, "sdpMid", candidate.sdpMid);
+//        jsonPut(candidateJ, "sdpMLineIndex", candidate.sdpMLineIndex);
+//        jsonPut(data, "id", "onIceCandidate");
+//        if (!isScreenSharing) jsonPut(data, "name", userId);
+//        else jsonPut(data, "name", userId2);
+//        jsonPut(data, "service_id", 28);
+//        jsonPut(data, "conversationId", conversationId);
+//        jsonPut(data, "domain", 14);
+//        jsonPut(data, "candidate", candidateJ);
+//        jsonPut(json, "service", 113);
+//        jsonPut(json, "data", data);
+
+        CandidateJ candidateJ = new CandidateJ()
+            .setCandidate(candidate.sdp)
+            .setSdpMid(candidate.sdpMid)
+            .setSdpMLineIndex(candidate.sdpMLineIndex);
+
+        // Todo
+        MessageData data = new MessageData()
+            .setId("onIceCandidate")
+            .setServiceId(28 + "")
+            .setConversationId(conversationId)
+            .setDomain("14")
+            .setCandidate(candidateJ);
+        if (!isScreenSharing) {
+          data.setName(GsonWrapper.getGson().toJsonTree(userId));
+        } else {
+          data.setName(GsonWrapper.getGson().toJsonTree(userId2));
+        }
+
+        Message message = new Message()
+            .setService(113)
+            .setData(data);
+        // Call receiver sends ice candidates to websocket server.
+        wsClient.send(message);
       }
+    });
+  }
 
 
+  @Override
+  public void onWebSocketClose() {
+    signalingEvents.onChannelClose();
+  }
 
-      @Override
-      public void onWebSocketClose() {
-          signalingEvents.onChannelClose();
-      }
-
-      @Override
-      public void onWebSocketError(String description) {
-        reportError("WebSocket error: " + description);
-      }
+  @Override
+  public void onWebSocketError(String description) {
+    reportError("WebSocket error: " + description);
+  }
 
   // --------------------------------------------------------------------
   // Helper functions.
@@ -582,20 +717,20 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
       @Override
       public void run() {
         if (socketState != WebSocketConnectionState.ERROR) {
-                socketState = WebSocketConnectionState.ERROR;
-                signalingEvents.onChannelError(errorMessage);
+          socketState = WebSocketConnectionState.ERROR;
+          signalingEvents.onChannelError(errorMessage);
         }
       }
     });
   }
 
   // Put a |key|->|value| mapping in |json|.
-  public static void jsonPut(JSONObject json, String key, Object value) {
-    try {
-      json.put(key, value);
-    } catch (JSONException e) {
-      throw new RuntimeException(e);
-    }
-  }
+//  public static void jsonPut(JSONObject json, String key, Object value) {
+//    try {
+//      json.put(key, value);
+//    } catch (JSONException e) {
+//      throw new RuntimeException(e);
+//    }
+//  }
 
 }

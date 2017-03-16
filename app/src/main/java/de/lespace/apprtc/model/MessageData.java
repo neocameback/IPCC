@@ -1,12 +1,15 @@
 package de.lespace.apprtc.model;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
+
+import de.lespace.apprtc.constants.MessageType;
 
 /**
  * Created by Macbook on 3/16/17.
  */
 
-class MessageData {
+public class MessageData {
   @SerializedName("visitorName")
   private String visitorName;
 
@@ -37,17 +40,17 @@ class MessageData {
   @SerializedName("browser")
   private String browser;
 
-  @SerializedName("device_type")
-  private String device_type;
+  @SerializedName("deviceType")
+  private String deviceType;
 
   @SerializedName("message")
   private String message;
 
   @SerializedName("name")
-  private String name;
+  private JsonElement name;
 
   @SerializedName("userId")
-  private String userId;
+  private int userId;
 
   @SerializedName("userName")
   private String userName;
@@ -97,8 +100,20 @@ class MessageData {
   @SerializedName("fileUrl")
   private String fileUrl;
 
+  @SerializedName("candidate")
+  private CandidateJ candidate;
+
+  @SerializedName("sdpAnswer")
+  private String sdpAnswer;
+
+  @SerializedName("sender")
+  private String sender;
+
+  @SerializedName("sdpOffer")
+  private String sdpOffer;
+
   @SerializedName("type")
-  private int type;
+  private MessageType type;
 
   public String getVisitorName() {
     return visitorName;
@@ -190,12 +205,12 @@ class MessageData {
     return this;
   }
 
-  public String getDevice_type() {
-    return device_type;
+  public String getDeviceType() {
+    return deviceType;
   }
 
-  public MessageData setDevice_type(String device_type) {
-    this.device_type = device_type;
+  public MessageData setDeviceType(String deviceType) {
+    this.deviceType = deviceType;
     return this;
   }
 
@@ -208,20 +223,20 @@ class MessageData {
     return this;
   }
 
-  public String getName() {
+  public JsonElement getName() {
     return name;
   }
 
-  public MessageData setName(String name) {
+  public MessageData setName(JsonElement name) {
     this.name = name;
     return this;
   }
 
-  public String getUserId() {
+  public int getUserId() {
     return userId;
   }
 
-  public MessageData setUserId(String userId) {
+  public MessageData setUserId(int userId) {
     this.userId = userId;
     return this;
   }
@@ -302,7 +317,7 @@ class MessageData {
     return service_name;
   }
 
-  public MessageData setService_name(String service_name) {
+  public MessageData setServiceName(String service_name) {
     this.service_name = service_name;
     return this;
   }
@@ -370,12 +385,48 @@ class MessageData {
     return this;
   }
 
-  public int getType() {
+  public MessageType getType() {
     return type;
   }
 
-  public MessageData setType(int type) {
+  public MessageData setType(MessageType type) {
     this.type = type;
+    return this;
+  }
+
+  public CandidateJ getCandidate() {
+    return candidate;
+  }
+
+  public MessageData setCandidate(CandidateJ candidate) {
+    this.candidate = candidate;
+    return this;
+  }
+
+  public String getSdpAnswer() {
+    return sdpAnswer;
+  }
+
+  public MessageData setSdpAnswer(String sdpAnswer) {
+    this.sdpAnswer = sdpAnswer;
+    return this;
+  }
+
+  public String getSender() {
+    return sender;
+  }
+
+  public MessageData setSender(String sender) {
+    this.sender = sender;
+    return this;
+  }
+
+  public String getSdpOffer() {
+    return sdpOffer;
+  }
+
+  public MessageData setSdpOffer(String sdpOffer) {
+    this.sdpOffer = sdpOffer;
     return this;
   }
 }

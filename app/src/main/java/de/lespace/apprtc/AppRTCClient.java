@@ -10,12 +10,13 @@
 
 package de.lespace.apprtc;
 
-import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 
 import java.util.List;
+
+import de.lespace.apprtc.model.Message;
 
 /**
  * AppRTCClient is the interface representing an AppRTC client.
@@ -115,7 +116,7 @@ public interface AppRTCClient {
 
     public void onReciveCall();
     public void onIncomingCall(String from);
-    public void onIncomingScreenCall(JSONObject from); //Screensharing only
+    public void onIncomingScreenCall(Message from); //Screensharing only
 
     public void onStartCommunication(final SessionDescription sdp);
     public void onStartScreenCommunication(final SessionDescription sdp); //Screensharing only

@@ -28,6 +28,8 @@ import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
+import de.lespace.apprtc.constants.GsonWrapper;
+import de.lespace.apprtc.model.Message;
 import de.lespace.apprtc.util.LooperExecutor;
 
 
@@ -54,7 +56,7 @@ public class WebSocketChannelClient {
   private boolean closeEvent;
   // WebSocket send queue. Messages are added to the queue when WebSocket
   // client is not registered and are consumed in register() call.
-  private final LinkedList<String> wsSendQueue;
+  private final LinkedList<Message> wsSendQueue;
 
   /**
    * Possible WebSocket connection states.
@@ -77,7 +79,7 @@ public class WebSocketChannelClient {
     this.executor = executor;
     this.events = events;
     from = null;
-    wsSendQueue = new LinkedList<String>();
+    wsSendQueue = new LinkedList<>();
     state = WebSocketConnectionState.NEW;
   }
 
@@ -239,7 +241,7 @@ public class WebSocketChannelClient {
         ws.sendText(json.toString());
 
         // Send any previously accumulated messages.
-        for (String sendMessage : wsSendQueue) {
+        for (Message sendMessage : wsSendQueue) {
           send(sendMessage);
         }
 
@@ -249,7 +251,7 @@ public class WebSocketChannelClient {
     }
   }
 
-  public void send(String message) {
+  public void send(Message message) {
     checkIfCalledOnValidThread();
     switch (state) {
       case NEW:
@@ -257,7 +259,7 @@ public class WebSocketChannelClient {
         // Store outgoing messages and send them after websocket client
         // is registered.
         Log.d(TAG, "WS ACC: " + message);
-          ws.sendText(message);
+          ws.sendText(GsonWrapper.getGson().toJson(message));
         return;
       case ERROR:
       case CLOSED:
@@ -265,7 +267,7 @@ public class WebSocketChannelClient {
         return;
       case REGISTERED:
         Log.d(TAG, "C->WSS: " + message);
-        ws.sendText(message);
+        ws.sendText(GsonWrapper.getGson().toJson(message));
         break;
     }
     return;
@@ -283,7 +285,9 @@ public class WebSocketChannelClient {
     Log.d(TAG, "Disonnect WebSocket. State: " + state);
     if (state == WebSocketConnectionState.REGISTERED) {
       // Send "bye" to WebSocket server.
-      send("{\"id\": \"stop\"}");
+
+//      send("{\"id\": \"stop\"}");
+      send(new Message().setId("stop"));
       state = WebSocketConnectionState.CONNECTED;
     }
     // Close WebSocket ERROR states only.

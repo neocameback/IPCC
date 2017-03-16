@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.lespace.apprtc.model.Message;
 import de.lespace.apprtc.util.LooperExecutor;
 
 
@@ -697,7 +698,7 @@ public class ConnectActivity extends RTCConnection
   }
 
   @Override
-  public void onIncomingScreenCall(JSONObject from) {
+  public void onIncomingScreenCall(Message from) {
     // super.onIncomingScreenCall()
     logAndToast("Creating OFFER for Screensharing Caller");
     //do nothing here - just in CallActivity
