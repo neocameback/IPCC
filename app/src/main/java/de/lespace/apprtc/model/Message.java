@@ -7,18 +7,18 @@ import de.lespace.apprtc.constants.MessageType;
  */
 
 public class Message {
-  private int service;
+  private MessageType service;
   private MessageData data;
   private MessageType type;
   private AppConfig params;
   private String result;
   private String id;
 
-  public int getService() {
+  public MessageType getService() {
     return service;
   }
 
-  public Message setService(int service) {
+  public Message setService(MessageType service) {
     this.service = service;
     return this;
   }

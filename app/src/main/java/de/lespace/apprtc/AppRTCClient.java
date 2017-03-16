@@ -75,6 +75,10 @@ public interface AppRTCClient {
    */
   public void reconnect();
 
+  void register();
+
+  void login();
+
   public void initUser();
   public void makeCall();
     public void joinRoom();
@@ -87,6 +91,8 @@ public interface AppRTCClient {
    * Disconnect from room.
    */
   public void sendDisconnectToPeer();
+
+  public void sendTextMessage(String messageText);
 
   /**
    * Struct holding the signaling parameters of an AppRTC room.
@@ -143,7 +149,6 @@ public interface AppRTCClient {
      * Callback fired once channel error happened.
      */
     public void onChannelError(final String description);
-
 
   }
 }
