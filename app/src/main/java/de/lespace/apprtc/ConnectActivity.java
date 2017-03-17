@@ -58,6 +58,8 @@ import java.util.List;
 
 import de.lespace.apprtc.constants.Configs;
 import de.lespace.apprtc.model.Message;
+import de.lespace.apprtc.model.MessageData;
+import de.lespace.apprtc.model.Service;
 import de.lespace.apprtc.util.LooperExecutor;
 
 
@@ -838,12 +840,47 @@ public class ConnectActivity extends RTCConnection
   }
 
   @Override
+  public void onConversationReady() {
+
+  }
+
+  @Override
+  public void onAgentMissedChat() {
+
+  }
+
+  @Override
+  public void endVideoCall() {
+
+  }
+
+  @Override
+  public void onNoAgentResponse() {
+
+  }
+
+  @Override
+  public void onMessageCome(MessageData message) {
+
+  }
+
+  @Override
+  public void onAgentEndConversation() {
+
+  }
+
+  @Override
   public void onWebSocketMessage(String message) {
     //do nothing
   }
 
   @Override
   public void onWebSocketClose() {
+
+  }
+
+  @Override
+  public void onServiceListResponse(List<Service> services) {
 
   }
 

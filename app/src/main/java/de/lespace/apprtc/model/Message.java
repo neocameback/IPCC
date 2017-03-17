@@ -1,5 +1,7 @@
 package de.lespace.apprtc.model;
 
+import com.google.gson.JsonElement;
+
 import de.lespace.apprtc.constants.MessageType;
 
 /**
@@ -9,7 +11,7 @@ import de.lespace.apprtc.constants.MessageType;
 public class Message {
   private MessageType service;
   private MessageData data;
-  private MessageType type;
+  private JsonElement type;
   private AppConfig params;
   private String result;
   private String id;
@@ -32,11 +34,11 @@ public class Message {
     return this;
   }
 
-  public MessageType getType() {
+  public JsonElement getType() {
     return type;
   }
 
-  public Message setType(MessageType type) {
+  public Message setType(JsonElement type) {
     this.type = type;
     return this;
   }

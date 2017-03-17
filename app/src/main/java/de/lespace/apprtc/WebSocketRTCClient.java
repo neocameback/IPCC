@@ -11,6 +11,8 @@
 package de.lespace.apprtc;
 
 
+import com.google.gson.JsonElement;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +27,7 @@ import java.util.LinkedList;
 import de.lespace.apprtc.WebSocketChannelClient.WebSocketChannelEvents;
 import de.lespace.apprtc.WebSocketChannelClient.WebSocketConnectionState;
 import de.lespace.apprtc.constants.Configs;
+import de.lespace.apprtc.constants.ConversationId;
 import de.lespace.apprtc.constants.GsonWrapper;
 import de.lespace.apprtc.constants.MessageType;
 import de.lespace.apprtc.model.AppConfig;
@@ -33,9 +36,16 @@ import de.lespace.apprtc.model.Message;
 import de.lespace.apprtc.model.MessageData;
 import de.lespace.apprtc.util.LooperExecutor;
 
+import static de.lespace.apprtc.constants.ConversationId.endVideoCall;
+import static de.lespace.apprtc.constants.ConversationId.joinRoom;
+import static de.lespace.apprtc.constants.ConversationId.onIceCandidate;
+import static de.lespace.apprtc.constants.ConversationId.receiveVideoFrom;
+import static de.lespace.apprtc.constants.ConversationId.requestVideoCall;
 import static de.lespace.apprtc.constants.MessageType.CUSTOMER_LOGIN;
 import static de.lespace.apprtc.constants.MessageType.CUSTOMER_RESUMING_REQUEST;
+import static de.lespace.apprtc.constants.MessageType.LEAVE_CONVERSATION;
 import static de.lespace.apprtc.constants.MessageType.MESSAGE;
+import static de.lespace.apprtc.constants.MessageType.PING;
 import static de.lespace.apprtc.constants.MessageType.VIDEO_CALL;
 
 /**
@@ -75,6 +85,8 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
   public static int userId2;
   public static String userName;
   public static int conversationId;
+
+  private MessageData agentData;
 
   public WebSocketRTCClient(SignalingEvents events, LooperExecutor executor) {
     this.executor = executor;
@@ -126,19 +138,21 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
 //                Log.e(TAG, "websocket still in non registered state.");
 //                return;
 //            }
+    JsonElement typeJson = message.getType();
 
-    String id = "";
-    String response = "";
-    if (message.getType() == null || message.getData() == null) {
+    if (typeJson == null || message.getData() == null || typeJson.getAsString().length() != 0) {
       return;
     }
 
-    MessageType type = message.getType();
+    String id = "";
+    String response = "";
+
+    MessageType type = MessageType.valueOf("" + typeJson.getAsInt());
+    MessageData data = message.getData();
     switch (type) {
       case CUSTOMER_LOGIN:
         //user register
 //            JSONObject userT = json.getJSONObject("data");
-        MessageData data = message.getData();
         userId = data.getUserId();
 //            userId = userT.getInt("userId");
 //            userName = userT.getString("name");
@@ -148,67 +162,34 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
         makeCall();
         break;
 
+      case AGENT_INFO_CUSTOMER:
+        agentData = message.getData();
+        break;
+
+      case HAVE_MESSAGE:
+        signalingEvents.onMessageCome(data);
+        break;
+
       case MESSAGE:
         conversationId = message.getData().getConversationId();
+        signalingEvents.onConversationReady();
+        break;
+
+      case RESPONSE_AGENT_MISS_CHAT_TO_CUSTOMER:
+        signalingEvents.onAgentMissedChat();
         break;
 
       case VIDEO_CALL: //video call processing
 //            JSONObject dataO = json.getJSONObject("data");
-        MessageData dataO = message.getData();
+        processVideoCall(message);
+        break;
 
-        String idM = dataO.getId();
-//            String idM = dataO.getString("id");
-        if (idM.equals("joinRoom")) {
-//              conversationId = dataO.getInt("conversationId");
-          conversationId = dataO.getConversationId();
-          joinRoom();
-        }
-        if (idM.equals("existingParticipants")) {
-          signalingEvents.onReciveCall();
-        }
-        if (idM.equals("iceCandidate")) {
-          //Log.d(TAG, "iceCandidate "+dataO.toString());
-          int nameX = dataO.getName().getAsInt();
-//              int nameX = dataO.getInt("name");
-//              String candidateJ = dataO.getString("candidate");
-//              String candidateJ = dataO.getCandidate();
-          CandidateJ candidateJ = dataO.getCandidate();
-//              JSONObject candidateJson = new JSONObject(candidateJ);
-          String sdpMid = candidateJ.getSdpMid();
-          int sdpMLineIndex = candidateJ.getSdpMLineIndex();
-          String candidateStr = candidateJ.getCandidate();
-//              String sdpMid = candidateJson.getString("sdpMid");
-//              int sdpMLineIndex = candidateJson.getInt("sdpMLineIndex");
-//              String candidateStr = candidateJson.getString("candidate");
-          IceCandidate candidate = new IceCandidate(
-              sdpMid,
-              sdpMLineIndex,
-              candidateStr);
-          if (nameX == userId) {
-            signalingEvents.onRemoteIceCandidate(candidate);
-          } else {
-            signalingEvents.onRemoteScreenIceCandidate(candidate);
-          }
-        }
-        if (idM.equals("receiveVideoAnswer")) {
-          int nameX = dataO.getName().getAsInt();
-//              Log.d(TAG, "sending sdpAnswer: " + dataO.getString("sdpAnswer"));
-          SessionDescription sdp = new SessionDescription(
-//                  SessionDescription.Type.ANSWER, dataO.getString("sdpAnswer"));
-              SessionDescription.Type.ANSWER, dataO.getSdpAnswer());
+      case AGENT_END_CONVERSATION_CUSTOMER:
+        signalingEvents.onAgentEndConversation();
+        break;
 
-          if (nameX == userId) {
-            signalingEvents.onRemoteDescription(sdp);
-          } else {
-            signalingEvents.onRemoteScreenDescription(sdp);
-          }
-        }
-        if (idM.equals("newParticipantArrived")) {
-          userId2 = dataO.getName().getAsInt();
-          signalingEvents.onIncomingScreenCall(message);
-//              userId2 = dataO.getInt("name");
-//              signalingEvents.onIncomingScreenCall(json);
-        }
+      case RESPONSE_SERVICE_LIST:
+        signalingEvents.onServiceListResponse(data.getServices());
         break;
     }
             /*
@@ -330,6 +311,77 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
 //    } catch (JSONException e) {
 //      reportError("WebSocket message JSON parsing error: " + e.toString());
 //    }
+  }
+
+  private void processVideoCall(Message message) {
+    MessageData dataO = message.getData();
+
+    ConversationId idM = dataO.getId();
+    switch (idM) {
+      case endVideoCall:
+        if (socketState == WebSocketConnectionState.NEW) {
+          signalingEvents.onNoAgentResponse();
+        } else {
+          signalingEvents.endVideoCall();
+        }
+        break;
+
+      case joinRoom:
+        //              conversationId = dataO.getInt("conversationId");
+        conversationId = dataO.getConversationId();
+        joinRoom();
+        break;
+
+      case existingParticipants:
+        signalingEvents.onReciveCall();
+        break;
+
+      case iceCandidate:
+        //Log.d(TAG, "iceCandidate "+dataO.toString());
+        int name = dataO.getName().getAsInt();
+//              int nameX = dataO.getInt("name");
+//              String candidateJ = dataO.getString("candidate");
+//              String candidateJ = dataO.getCandidate();
+        CandidateJ candidateJ = dataO.getCandidate();
+//              JSONObject candidateJson = new JSONObject(candidateJ);
+        String sdpMid = candidateJ.getSdpMid();
+        int sdpMLineIndex = candidateJ.getSdpMLineIndex();
+        String candidateStr = candidateJ.getCandidate();
+//              String sdpMid = candidateJson.getString("sdpMid");
+//              int sdpMLineIndex = candidateJson.getInt("sdpMLineIndex");
+//              String candidateStr = candidateJson.getString("candidate");
+        IceCandidate candidate = new IceCandidate(
+            sdpMid,
+            sdpMLineIndex,
+            candidateStr);
+        if (name == userId) {
+          signalingEvents.onRemoteIceCandidate(candidate);
+        } else {
+          signalingEvents.onRemoteScreenIceCandidate(candidate);
+        }
+        break;
+
+      case receiveVideoAnswer:
+        int nameX = dataO.getName().getAsInt();
+//              Log.d(TAG, "sending sdpAnswer: " + dataO.getString("sdpAnswer"));
+        SessionDescription sdp = new SessionDescription(
+//                  SessionDescription.Type.ANSWER, dataO.getString("sdpAnswer"));
+            SessionDescription.Type.ANSWER, dataO.getSdpAnswer());
+
+        if (nameX == userId) {
+          signalingEvents.onRemoteDescription(sdp);
+        } else {
+          signalingEvents.onRemoteScreenDescription(sdp);
+        }
+        break;
+
+      case newParticipantArrived:
+        userId2 = dataO.getName().getAsInt();
+        signalingEvents.onIncomingScreenCall(message);
+//              userId2 = dataO.getInt("name");
+//              signalingEvents.onIncomingScreenCall(json);
+        break;
+    }
   }
 
   // --------------------------------------------------------------------
@@ -491,7 +543,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
             .setConversationId(-1)
             .setMessage("")
             .setDomain("LANT_TEST1")
-            .setId("requestVideoCall");
+            .setId(requestVideoCall);
         Message message = new Message()
             .setData(data)
             .setService(VIDEO_CALL);
@@ -532,7 +584,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
             .setConversationId(conversationId)
             .setMessage("")
             .setDomain("14")
-            .setId("joinRoom");
+            .setId(joinRoom);
 
         Message message = new Message()
             .setData(data)
@@ -578,7 +630,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
           .setServiceId(28 + "")
           .setConversationId(conversationId)
           .setDomain("14")
-          .setId("endVideoCall");
+          .setId(endVideoCall);
 
       Message message = new Message()
           .setData(data)
@@ -641,7 +693,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
             .setServiceId("28")
             .setConversationId(conversationId)
             .setDomain("14")
-            .setId("receiveVideoFrom")
+            .setId(receiveVideoFrom)
             .setSender(userId + "")
             .setSdpOffer(sdp.description);
 
@@ -682,7 +734,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
             .setServiceId(28 + "")
             .setConversationId(conversationId)
             .setDomain("14")
-            .setId("receiveVideoFrom")
+            .setId(receiveVideoFrom)
             .setSdpOffer(sdp.description);
 
         if (isScreenSharing) {
@@ -730,7 +782,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
 
         // Todo
         MessageData data = new MessageData()
-            .setId("onIceCandidate")
+            .setId(onIceCandidate)
             .setServiceId(28 + "")
             .setConversationId(conversationId)
             .setDomain("14")
@@ -790,6 +842,49 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelEvents 
 
         Message message = new Message()
             .setService(MESSAGE)
+            .setData(data);
+        // Call receiver sends ice candidates to websocket server.
+        wsClient.send(message);
+      }
+    });
+  }
+
+  @Override
+  public void leaveConversation() {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        MessageData data = new MessageData()
+            .setVisitorId(userId)
+            .setServiceId("-1")
+            .setConversationId(conversationId);
+
+        Message message = new Message()
+            .setService(LEAVE_CONVERSATION)
+            .setData(data);
+        // Call receiver sends ice candidates to websocket server.
+        wsClient.send(message);
+      }
+    });
+  }
+
+  @Override
+  public void updateUserInfo(final String username, String email) {
+
+    // todo
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        MessageData data = new MessageData()
+            .setUserId(userId)
+            .setUserName(username)
+            .setType(PING)
+            .setTyping(false)
+            .setServiceId("" + 43)
+            .setConversationId(conversationId);
+
+        Message message = new Message()
+            .setService(LEAVE_CONVERSATION)
             .setData(data);
         // Call receiver sends ice candidates to websocket server.
         wsClient.send(message);

@@ -42,7 +42,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -50,6 +49,8 @@ import java.util.List;
 
 import de.lespace.apprtc.constants.Configs;
 import de.lespace.apprtc.model.Message;
+import de.lespace.apprtc.model.MessageData;
+import de.lespace.apprtc.model.Service;
 import de.lespace.apprtc.util.LooperExecutor;
 
 
@@ -63,30 +64,6 @@ public class ConnectChatActivity extends RTCConnection
   private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
   private static boolean commandLineRun = false;
 
-
-//  private ImageButton connectButton;
-//  private String keyprefFrom;
-//  private String keyprefVideoCallEnabled;
-//  private String keyprefResolution;
-//  private String keyprefFps;
-//  private String keyprefCaptureQualitySlider;
-//  private String keyprefVideoBitrateType;
-//  private String keyprefVideoBitrateValue;
-//  private String keyprefVideoCodec;
-//  private String keyprefAudioBitrateType;
-//  private String keyprefAudioBitrateValue;
-//  private String keyprefAudioCodec;
-//  private String keyprefHwCodecAcceleration;
-//  private String keyprefCaptureToTexture;
-//  private String keyprefNoAudioProcessingPipeline;
-//  private String keyprefAecDump;
-//  private String keyprefOpenSLES;
-//  private String keyprefDisplayHud;
-//  private String keyprefTracing;
-//  private String keyprefRoomServerUrl;
-//  private String keyprefRoom;
-//  private String keyprefRoomList;
-  private ListView roomListView;
   private List<String> missingPermissions;
   private Intent intent = null;
 
@@ -139,36 +116,10 @@ public class ConnectChatActivity extends RTCConnection
     // Get setting keys.
     PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
     sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-//    keyprefFrom = getString(R.string.pref_from_key);
-//    keyprefVideoCallEnabled = getString(R.string.pref_videocall_key);
-//    keyprefResolution = getString(R.string.pref_resolution_key);
-//    keyprefFps = getString(R.string.pref_fps_key);
-//    keyprefCaptureQualitySlider = getString(R.string.pref_capturequalityslider_key);
-//    keyprefVideoBitrateType = getString(R.string.pref_startvideobitrate_key);
-//    keyprefVideoBitrateValue = getString(R.string.pref_startvideobitratevalue_key);
-//    keyprefVideoCodec = getString(R.string.pref_videocodec_key);
-//    keyprefHwCodecAcceleration = getString(R.string.pref_hwcodec_key);
-//    keyprefCaptureToTexture = getString(R.string.pref_capturetotexture_key);
-//    keyprefAudioBitrateType = getString(R.string.pref_startaudiobitrate_key);
-//    keyprefAudioBitrateValue = getString(R.string.pref_startaudiobitratevalue_key);
-//    keyprefAudioCodec = getString(R.string.pref_audiocodec_key);
-//    keyprefNoAudioProcessingPipeline = getString(R.string.pref_noaudioprocessing_key);
-//    keyprefAecDump = getString(R.string.pref_aecdump_key);
-//    keyprefOpenSLES = getString(R.string.pref_opensles_key);
-//    keyprefDisplayHud = getString(R.string.pref_displayhud_key);
-//    keyprefTracing = getString(R.string.pref_tracing_key);
-//    keyprefRoomServerUrl = getString(R.string.pref_room_server_url_key);
-//    keyprefRoom = getString(R.string.pref_room_key);
-//    keyprefRoomList = getString(R.string.pref_room_list_key);
-//    from = sharedPref.getString(keyprefFrom, getString(R.string.pref_from_default));
-//    String roomUrl = sharedPref.getString(
-//            keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
-    int counter = 0;
     missingPermissions = new ArrayList();
 
     for (String permission : MANDATORY_PERMISSIONS) {
       if (checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-        counter++;
         missingPermissions.add(permission);
       }
     }
@@ -497,12 +448,47 @@ public class ConnectChatActivity extends RTCConnection
   }
 
   @Override
+  public void onConversationReady() {
+
+  }
+
+  @Override
+  public void onAgentMissedChat() {
+
+  }
+
+  @Override
+  public void endVideoCall() {
+
+  }
+
+  @Override
+  public void onNoAgentResponse() {
+
+  }
+
+  @Override
+  public void onMessageCome(MessageData message) {
+
+  }
+
+  @Override
+  public void onAgentEndConversation() {
+
+  }
+
+  @Override
   public void onWebSocketMessage(String message) {
     //do nothing
   }
 
   @Override
   public void onWebSocketClose() {
+
+  }
+
+  @Override
+  public void onServiceListResponse(List<Service> services) {
 
   }
 

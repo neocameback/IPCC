@@ -3,7 +3,10 @@ package de.lespace.apprtc.model;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 import de.lespace.apprtc.constants.MessageType;
+import de.lespace.apprtc.constants.ConversationId;
 
 /**
  * Created by Macbook on 3/16/17.
@@ -71,7 +74,7 @@ public class MessageData {
   private boolean isTyping;
 
   @SerializedName("id")
-  private String id;
+  private ConversationId id;
 
   @SerializedName("agentId")
   private String agentId;
@@ -114,6 +117,9 @@ public class MessageData {
 
   @SerializedName("type")
   private MessageType type;
+
+  @SerializedName("data")
+  private List<Service> services;
 
   public String getVisitorName() {
     return visitorName;
@@ -295,11 +301,11 @@ public class MessageData {
     return this;
   }
 
-  public String getId() {
+  public ConversationId getId() {
     return id;
   }
 
-  public MessageData setId(String id) {
+  public MessageData setId(ConversationId id) {
     this.id = id;
     return this;
   }
@@ -427,6 +433,15 @@ public class MessageData {
 
   public MessageData setSdpOffer(String sdpOffer) {
     this.sdpOffer = sdpOffer;
+    return this;
+  }
+
+  public List<Service> getServices() {
+    return services;
+  }
+
+  public MessageData setServices(List<Service> services) {
+    this.services = services;
     return this;
   }
 }
