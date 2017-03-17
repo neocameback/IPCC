@@ -85,12 +85,9 @@ public class ChatTextFragment extends Fragment implements View.OnClickListener, 
     }
   }
 
-  private static int firstVisibleInListview;
-
   @Override
-  public void initView(ConversationAdapter adapter) {
+  public void initView(ConversationNotGroupAdapter adapter) {
     mConversationRv.setAdapter(adapter);
-    final LinearLayoutManager mLinearLayoutManager = (LinearLayoutManager) mConversationRv.getLayoutManager();
   }
 
   @Override
