@@ -11,15 +11,14 @@ public class Mapping {
     for (Message m : messages) {
       if (mGroupMessage == null) {
         mGroupMessage = new GroupMessage();
-        mGroupMessage.setmUserId(m.getUserId());
         mGroupMessage.addMessage(m);
       } else {
-        if (mGroupMessage.getmUserId() == m.getUserId()) {
-          mGroupMessage.addMessage(m);
-        } else {
+//        if (mGroupMessage.getmUserId() == m.getUserId()) {
+//          mGroupMessage.addMessage(m);
+//        } else {
           groupMessages.add(mGroupMessage);
           mGroupMessage = null;
-        }
+//        }
       }
     }
     return groupMessages;

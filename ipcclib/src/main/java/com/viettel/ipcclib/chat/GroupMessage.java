@@ -9,7 +9,6 @@ import java.util.List;
  */
 
 public class GroupMessage {
-  private long mUserId;
   private String mUserAvatar;
   private List<Message> mMessages;
 
@@ -17,8 +16,7 @@ public class GroupMessage {
     mMessages = new ArrayList<>();
   }
 
-  public GroupMessage(long mUserId, String mUserAvatar, List<Message> mMessages) {
-    this.mUserId = mUserId;
+  public GroupMessage(String mUserAvatar, List<Message> mMessages) {
     this.mUserAvatar = mUserAvatar;
     this.mMessages = new ArrayList<>();
     this.mMessages.addAll(mMessages);
@@ -26,14 +24,6 @@ public class GroupMessage {
 
   public void addMessage(Message m) {
     mMessages.add(m);
-  }
-
-  public long getmUserId() {
-    return mUserId;
-  }
-
-  public void setmUserId(long mUserId) {
-    this.mUserId = mUserId;
   }
 
   public String getmUserAvatar() {
@@ -54,7 +44,7 @@ public class GroupMessage {
 
   public boolean isOwner() {
     if (mMessages.get(0) != null)
-      return mMessages.get(0).isOwner();
+      return mMessages.get(0).getType() == Message.Type.MINE;
     return false;
   }
 }

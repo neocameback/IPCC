@@ -1,49 +1,24 @@
 package com.viettel.ipcclib.chat;
 
+import java.util.Date;
+
 /**
  * Message of a user in a time
  * Created by Alan's on 3/16/2017.
  */
 
 public class Message {
-  private long id;
-  private long userId;
-  private String content;
-  private String time;
+  private Type mType;
+  private CharSequence content;
+  private Date time;
 
-  public Message() {
-  }
-
-  public Message(long id, long userId, String content) {
-    this.id = id;
-    this.userId = userId;
-    this.content = content;
-  }
-
-  public Message(long id, long userId, String content, String time) {
-    this.id = id;
-    this.userId = userId;
+  public Message(CharSequence content, Date time, Type type) {
     this.content = content;
     this.time = time;
+    mType = type;
   }
 
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public long getUserId() {
-    return userId;
-  }
-
-  public void setUserId(long userId) {
-    this.userId = userId;
-  }
-
-  public String getContent() {
+  public CharSequence getContent() {
     return content;
   }
 
@@ -51,19 +26,25 @@ public class Message {
     this.content = content;
   }
 
-  public String getTime() {
+  public Date getTime() {
     return time;
   }
 
-  public void setTime(String time) {
+  public void setTime(Date time) {
     this.time = time;
   }
 
-  public boolean isOwner() {
-    //// TODO: 3/16/2017  check if this message is created by this user
-    //fake
-    if (userId % 2 == 0)
-      return false;
-    return true;
+  public Type getType() {
+    return mType;
+  }
+
+  public Message setType(Type type) {
+    mType = type;
+    return this;
+  }
+
+
+  public enum Type {
+    MINE, OTHER, NOTICE
   }
 }

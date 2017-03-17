@@ -1,68 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent">
-
-  <de.lespace.apprtc.videocall.AutoFitTextureView
-    android:id="@+id/texture"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_alignParentStart="true"
-    android:layout_alignParentTop="true"/>
+    android:layout_height="match_parent">
 
   <de.lespace.apprtc.videocall.AutoFitTextureView
-    android:id="@+id/video_call_owner_texture"
-    android:layout_width="100dp"
-    android:layout_height="100dp"
-    android:layout_alignParentEnd="true"
-    android:layout_centerVertical="true"
-    android:layout_marginEnd="20dp"/>
-
-  <RelativeLayout
-    style="@style/ToolBarCommon">
-    <ImageView
+      android:id="@+id/texture"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:background="@android:color/black"
-      android:alpha="0.4"/>
+      android:layout_alignParentStart="true"
+      android:layout_alignParentTop="true"/>
+
+  <de.lespace.apprtc.videocall.AutoFitTextureView
+      android:id="@+id/video_call_owner_texture"
+      android:layout_width="100dp"
+      android:layout_height="100dp"
+      android:layout_alignParentEnd="true"
+      android:layout_centerVertical="true"
+      android:layout_marginEnd="20dp"/>
+
+  <RelativeLayout
+      style="@style/ToolBarCommon">
     <ImageView
-      android:layout_width="?android:actionBarSize"
-      android:layout_height="match_parent"
-      android:src="@drawable/ic_back"
-      android:id="@+id/back_iv"
-      android:padding="@dimen/padding_medium"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.4"
+        android:background="@android:color/black"/>
+    <ImageView
+        android:id="@+id/back_iv"
+        android:layout_width="?android:actionBarSize"
+        android:layout_height="match_parent"
+        android:padding="@dimen/padding_small"
+        android:src="@drawable/ic_back"/>
 
     <TextView
-      style="@style/ToolBarTitle"
-      android:text="@string/title_example"
-      android:layout_centerVertical="true"
-      android:layout_toEndOf="@+id/back_iv"/>
+        style="@style/ToolBarTitle"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/back_iv"
+        android:text="@string/title_example"/>
   </RelativeLayout>
 
   <LinearLayout
-    style="@style/ToolBarCommon"
-    android:orientation="horizontal"
-    android:layout_alignParentBottom="true">
+      style="@style/ToolBarCommon"
+      android:layout_alignParentBottom="true"
+      android:orientation="horizontal">
 
-    <ImageView
-      style="@style/VideoCallImage"
-      android:id="@+id/end_call_iv"
-      android:src="@drawable/ic_hang_up"/>
+    <RelativeLayout
+        style="@style/VideoCallImage">
+      <RelativeLayout android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_centerInParent="true"
+                      android:background="@drawable/transparent_white_circle_bg">
+        <ImageView
+            android:id="@+id/mute_audio_iv"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_micro_phone"/>
+      </RelativeLayout>
 
-    <ImageView
-      style="@style/VideoCallImage"
-      android:id="@+id/mute_audio_iv"
-      android:src="@drawable/ic_micro_phone"/>
+    </RelativeLayout>
 
-    <ImageView
-      style="@style/VideoCallImage"
-      android:id="@+id/swap_camera_iv"
-      android:src="@drawable/ic_camera"/>
+    <RelativeLayout
+        style="@style/VideoCallImage">
+      <RelativeLayout android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_centerInParent="true"
+                      android:background="@drawable/red_circle_bg">
+        <ImageView
+            android:id="@+id/end_call_iv"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_hang_up"/>
+      </RelativeLayout>
 
-    <!--<ImageView-->
-      <!--style="@style/VideoCallImage"-->
-      <!--android:id="@+id/scale_video_iv"-->
-      <!--android:src="@drawable/ic_action_return_from_full_screen"/>-->
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        style="@style/VideoCallImage">
+      <RelativeLayout android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_centerInParent="true"
+                      android:background="@drawable/transparent_white_circle_bg">
+        <ImageView
+            android:id="@+id/video_call_iv"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_video_call"/>
+      </RelativeLayout>
+
+    </RelativeLayout>
+
   </LinearLayout>
 </RelativeLayout>

@@ -69,9 +69,11 @@ public class WebSocketChannelClient {
    * All events are dispatched from a looper executor thread.
    */
   public interface WebSocketChannelEvents {
-    public void onWebSocketMessage(final String message);
-    public void onWebSocketClose();
-    public void onWebSocketError(final String description);
+    void onWebSocketMessage(final String message);
+    void onWebSocketClose();
+    void onWebSocketError(final String description);
+
+    void onWebSocketConnected();
   }
 
   public WebSocketChannelClient(LooperExecutor executor, WebSocketChannelEvents events) {
@@ -157,6 +159,8 @@ public class WebSocketChannelClient {
                 RoomParametersFetcher roomParametersFetcher = new RoomParametersFetcher(ws);
                 roomParametersFetcher.makeRequest();
               }
+
+              events.onWebSocketConnected();
             }
           });
         }
@@ -252,21 +256,24 @@ public class WebSocketChannelClient {
 
   public void send(Message message) {
     checkIfCalledOnValidThread();
+
+    String msg = GsonWrapper.getGson().toJson(message);
+    Log.d(TAG, "WS ACC: " + msg);
+
     switch (state) {
       case NEW:
       case CONNECTED:
         // Store outgoing messages and send them after websocket client
         // is registered.
-        Log.d(TAG, "WS ACC: " + message);
-          ws.sendText(GsonWrapper.getGson().toJson(message));
+        ws.sendText(msg);
         return;
       case ERROR:
       case CLOSED:
         Log.e(TAG, "WebSocket send() in error or closed state : " + message);
         return;
       case REGISTERED:
-        Log.d(TAG, "C->WSS: " + message);
-        ws.sendText(GsonWrapper.getGson().toJson(message));
+        Log.d(TAG, "C->WSS: " + msg);
+        ws.sendText(msg);
         break;
     }
     return;

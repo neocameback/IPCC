@@ -201,6 +201,7 @@ public class ConnectActivity extends RTCConnection
             keyprefOpenSLES,
             Boolean.valueOf(getString(R.string.pref_opensles_default)));
 
+
     // Check for mandatory permissions.
     int counter = 0;
     missingPermissions = new ArrayList();

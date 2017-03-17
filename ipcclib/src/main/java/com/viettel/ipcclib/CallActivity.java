@@ -10,6 +10,8 @@
 
 package com.viettel.ipcclib;
 
+import com.viettel.ipcclib.constants.Configs;
+
 import org.webrtc.EglBase;
 import org.webrtc.RendererCommon.ScalingType;
 import org.webrtc.StatsReport;
@@ -36,8 +38,8 @@ import android.widget.Toast;
  * and call view.
  */
 public class CallActivity extends RTCConnection implements
-       CallFragment.OnCallEvents
-       // AppRTCClient.SignalingEvents,
+    CallFragment.OnCallEvents
+    // AppRTCClient.SignalingEvents,
     //    PeerConnectionClient.PeerConnectionEvents,
     //     WebSocketChannelClient.WebSocketChannelEvents
 {
@@ -69,8 +71,8 @@ public class CallActivity extends RTCConnection implements
   private static final int SCREEN_WIDTH = 100;
   private static final int SCREEN_HEIGHT = 100;
 
-    private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 0;
-    // private AppRTCClient appRtcClient;
+  private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 0;
+  // private AppRTCClient appRtcClient;
   private ScalingType scalingType;
   private Toast logToast;
   private boolean commandLineRun;
@@ -90,7 +92,7 @@ public class CallActivity extends RTCConnection implements
   private GestureDetectorCompat mDetector;
   private static boolean broadcastIsRegistered;
 
-    @Override
+  @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
@@ -102,15 +104,15 @@ public class CallActivity extends RTCConnection implements
     requestWindowFeature(Window.FEATURE_NO_TITLE);
     getWindow().addFlags(
         LayoutParams.FLAG_FULLSCREEN
-        | LayoutParams.FLAG_KEEP_SCREEN_ON
-        | LayoutParams.FLAG_DISMISS_KEYGUARD
-        | LayoutParams.FLAG_SHOW_WHEN_LOCKED
-        | LayoutParams.FLAG_TURN_SCREEN_ON);
+            | LayoutParams.FLAG_KEEP_SCREEN_ON
+            | LayoutParams.FLAG_DISMISS_KEYGUARD
+            | LayoutParams.FLAG_SHOW_WHEN_LOCKED
+            | LayoutParams.FLAG_TURN_SCREEN_ON);
 
     getWindow().getDecorView().setSystemUiVisibility(
         View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-        | View.SYSTEM_UI_FLAG_FULLSCREEN
-        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            | View.SYSTEM_UI_FLAG_FULLSCREEN
+            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
     setContentView(R.layout.activity_call);
 
@@ -134,7 +136,7 @@ public class CallActivity extends RTCConnection implements
     screenRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_screen_layout);
 
 
-      // Show/hide call control fragment on view click.
+    // Show/hide call control fragment on view click.
     View.OnClickListener listener = new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -157,10 +159,10 @@ public class CallActivity extends RTCConnection implements
 
     setResult(RESULT_CANCELED);
 
-    if(!broadcastIsRegistered) {
-        registerReceiver(broadcast_reciever, new IntentFilter("finish_CallActivity"));
-        registerReceiver(broadcast_reciever, new IntentFilter("finish_screensharing"));
-        broadcastIsRegistered = true;
+    if (!broadcastIsRegistered) {
+      registerReceiver(broadcast_reciever, new IntentFilter("finish_CallActivity"));
+      registerReceiver(broadcast_reciever, new IntentFilter("finish_screensharing"));
+      broadcastIsRegistered = true;
     }
 
     callFragment = new CallFragment();
@@ -188,13 +190,13 @@ public class CallActivity extends RTCConnection implements
     // Create and audio manager that will take care of audio routing,
     // audio modes, audio device enumeration etc.
     audioManager = AppRTCAudioManager.create(this, new Runnable() {
-                  // This method will be called each time the audio state (number and
-                  // type of devices) has been changed.
-                  @Override
-                  public void run() {
-                      onAudioManagerChangedState();
-                  }
-              }
+          // This method will be called each time the audio state (number and
+          // type of devices) has been changed.
+          @Override
+          public void run() {
+            onAudioManagerChangedState();
+          }
+        }
     );
 
     // Store existing audio settings and change audio mode to
@@ -202,13 +204,25 @@ public class CallActivity extends RTCConnection implements
     Log.d(TAG, "Initializing the audio manager...");
     audioManager.init();
 
+    // new connection params
+    int videoWidth = 0, videoHeight = 0, cameraFps = 0, videoStartBitrate = 0, audioStartBitrate = 0;
+    String videoCodec = "VP8";
+    peerConnectionParameters = new PeerConnectionClient.PeerConnectionParameters(
+        true,
+        false,
+        videoWidth, videoHeight, cameraFps, videoStartBitrate, videoCodec, true,
+        false, audioStartBitrate, "OPUS", false,
+        false, false);
+
+    roomConnectionParameters = new AppRTCClient.RoomConnectionParameters(Configs.ROOM_URL, from, false);
+
     peerConnectionClient = PeerConnectionClient.getInstance(true);
     peerConnectionClient.createPeerConnectionFactory(
-            CallActivity.this, peerConnectionParameters, this);
+        CallActivity.this, peerConnectionParameters, this);
 
     peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-            localRender,remoteRender,screenRender,
-            roomConnectionParameters.initiator);
+        localRender, remoteRender, screenRender,
+        roomConnectionParameters.initiator);
 
     logAndToast("Creating OFFER...");
     // Create offer. Offer SDP will be sent to answering client in
@@ -216,10 +230,10 @@ public class CallActivity extends RTCConnection implements
     peerConnectionClient.createOffer();
   }
 
-    private void onAudioManagerChangedState() {
-        // TODO(henrika): disable video if AppRTCAudioManager.AudioDevice.EARPIECE
-        // is active.
-    }
+  private void onAudioManagerChangedState() {
+    // TODO(henrika): disable video if AppRTCAudioManager.AudioDevice.EARPIECE
+    // is active.
+  }
 
 
   public void updateVideoView() {
@@ -234,12 +248,12 @@ public class CallActivity extends RTCConnection implements
 
     if (iceConnected) {
       localRenderLayout.setPosition(
-              LOCAL_X_CONNECTED, LOCAL_Y_CONNECTED, LOCAL_WIDTH_CONNECTED, LOCAL_HEIGHT_CONNECTED);
+          LOCAL_X_CONNECTED, LOCAL_Y_CONNECTED, LOCAL_WIDTH_CONNECTED, LOCAL_HEIGHT_CONNECTED);
       localRender.setScalingType(ScalingType.SCALE_ASPECT_FIT);
 
     } else {
       localRenderLayout.setPosition(
-              LOCAL_X_CONNECTING, LOCAL_Y_CONNECTING, LOCAL_WIDTH_CONNECTING, LOCAL_HEIGHT_CONNECTING);
+          LOCAL_X_CONNECTING, LOCAL_Y_CONNECTING, LOCAL_WIDTH_CONNECTING, LOCAL_HEIGHT_CONNECTING);
       localRender.setScalingType(scalingType);
     }
     localRender.setMirror(true);
@@ -280,15 +294,15 @@ public class CallActivity extends RTCConnection implements
     if (peerConnectionClient != null) {
       boolean renderVideo = !peerConnectionClient.renderVideo;
       peerConnectionClient.setVideoEnabled(renderVideo);
-      logAndToast(renderVideo?"video enabled":"video disabled");
+      logAndToast(renderVideo ? "video enabled" : "video disabled");
     }
   }
 
   @Override
   public void onAudioMute() {
 
-      boolean muted = audioManager.setMicrophoneMute(true);
-      logAndToast(muted?"muted":"unmuted");
+    boolean muted = audioManager.setMicrophoneMute(true);
+    logAndToast(muted ? "muted" : "unmuted");
   }
 
   @Override
@@ -314,8 +328,8 @@ public class CallActivity extends RTCConnection implements
     activityRunning = false;
 
 
-     unregisterReceiver(broadcast_reciever);
-     broadcastIsRegistered = false;
+    unregisterReceiver(broadcast_reciever);
+    broadcastIsRegistered = false;
 
     rootEglBase.release();
     super.onDestroy();
@@ -347,52 +361,52 @@ public class CallActivity extends RTCConnection implements
     peerConnectionClient.enableStatsEvents(true, STAT_CALLBACK_PERIOD);
   }
 
-    public void disconnect(boolean sendRemoteHangup){
+  public void disconnect(boolean sendRemoteHangup) {
 
-        if (localRender != null) {
-            localRender.release();
-            localRender = null;
-        }
-        if (remoteRender != null) {
-            remoteRender.release();
-            remoteRender = null;
-        }
-
-        if (screenRender != null) {
-            screenRender.release();
-            screenRender = null;
-        }
-
-        if (audioManager != null) {
-            audioManager.close();
-            audioManager = null;
-        }
-
-        if (appRtcClient != null && sendRemoteHangup) {
-            appRtcClient.sendDisconnectToPeer(); //send bye message to peer only when initiator
-            sendDisconnectToPeer = false;
-            // appRtcClient = null;
-        }
-
-       //DON'T DO THAT if(appRtcClient != null) appRtcClient = null;
-
-        if (peerConnectionClient != null) {
-            peerConnectionClient.close();
-            peerConnectionClient = null;
-        }
-
-        if (peerConnectionClient2 != null) {
-          peerConnectionClient2.close();
-          peerConnectionClient2 = null;
-        }
-
-        if(activityRunning){
-            activityRunning=false;
-            setResult(RESULT_OK); //okey means send stop to client!
-            finish();
-        }
-
+    if (localRender != null) {
+      localRender.release();
+      localRender = null;
     }
+    if (remoteRender != null) {
+      remoteRender.release();
+      remoteRender = null;
+    }
+
+    if (screenRender != null) {
+      screenRender.release();
+      screenRender = null;
+    }
+
+    if (audioManager != null) {
+      audioManager.close();
+      audioManager = null;
+    }
+
+    if (appRtcClient != null && sendRemoteHangup) {
+      appRtcClient.sendDisconnectToPeer(); //send bye message to peer only when initiator
+      sendDisconnectToPeer = false;
+      // appRtcClient = null;
+    }
+
+    //DON'T DO THAT if(appRtcClient != null) appRtcClient = null;
+
+    if (peerConnectionClient != null) {
+      peerConnectionClient.close();
+      peerConnectionClient = null;
+    }
+
+    if (peerConnectionClient2 != null) {
+      peerConnectionClient2.close();
+      peerConnectionClient2 = null;
+    }
+
+    if (activityRunning) {
+      activityRunning = false;
+      setResult(RESULT_OK); //okey means send stop to client!
+      finish();
+    }
+
+  }
 
   // Helper functions.
   public void toggleCallControlFragmentVisibility() {
@@ -413,35 +427,35 @@ public class CallActivity extends RTCConnection implements
     ft.commit();
   }
 
-    BroadcastReceiver broadcast_reciever = new BroadcastReceiver() {
+  BroadcastReceiver broadcast_reciever = new BroadcastReceiver() {
 
-        @Override
-        public void onReceive(Context arg0, Intent intent) {
+    @Override
+    public void onReceive(Context arg0, Intent intent) {
 
-            String action = intent.getAction();
-            if (action.equals("finish_CallActivity")) {
-                sendDisconnectToPeer = false;
-                finish();
-            }
+      String action = intent.getAction();
+      if (action.equals("finish_CallActivity")) {
+        sendDisconnectToPeer = false;
+        finish();
+      }
 
-            if (action.equals("finish_screensharing")) {
-            //  http://stackoverflow.com/questions/37385522/how-to-change-surfaceviews-z-order-runtime-in-android
-              if (screenRender != null) {
-                //
+      if (action.equals("finish_screensharing")) {
+        //  http://stackoverflow.com/questions/37385522/how-to-change-surfaceviews-z-order-runtime-in-android
+        if (screenRender != null) {
+          //
 
-                peerConnectionClient2.close();
-                screenRenderLayout.removeView(screenRender);
-              //  screenRender.release();
-               // screenRenderLayout.add(screenRender);
-                screenRenderLayout.addView(screenRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-               // screenRender.setVisibility(View.GONE);
-                screenRender.setZOrderMediaOverlay(true);
-               // screenRender.release();
-                //screenRender = null;
-               // screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
-              //  screenRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_screen_layout);
-              //  screenRender.init(rootEglBase.getEglBaseContext(), null);
-              //  screenRender.setZOrderMediaOverlay(true);
+          peerConnectionClient2.close();
+          screenRenderLayout.removeView(screenRender);
+          //  screenRender.release();
+          // screenRenderLayout.add(screenRender);
+          screenRenderLayout.addView(screenRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+          // screenRender.setVisibility(View.GONE);
+          screenRender.setZOrderMediaOverlay(true);
+          // screenRender.release();
+          //screenRender = null;
+          // screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
+          //  screenRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_screen_layout);
+          //  screenRender.init(rootEglBase.getEglBaseContext(), null);
+          //  screenRender.setZOrderMediaOverlay(true);
                 /*
                 remoteRenderLayout.removeView(remoteRender);
                 localRenderLayout.removeView(localRender);
@@ -449,28 +463,28 @@ public class CallActivity extends RTCConnection implements
                 remoteRender.setVisibility(View.GONE);
                 localRender.setZOrderMediaOverlay(true);
                 remoteRender.setZOrderMediaOverlay(false);*/
-               // localRenderLayout.addView(mLocalRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-               // remoteRenderLayout.addView(mRemoteRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-               // localRender.setVisibility(View.VISIBLE);
-               // remoteRender.setVisibility(View.VISIBLE);
-               // localRender.setZOrderMediaOverlay(true);
-              //  screenRender.setVisibility(View.INVISIBLE);
+          // localRenderLayout.addView(mLocalRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+          // remoteRenderLayout.addView(mRemoteRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+          // localRender.setVisibility(View.VISIBLE);
+          // remoteRender.setVisibility(View.VISIBLE);
+          // localRender.setZOrderMediaOverlay(true);
+          //  screenRender.setVisibility(View.INVISIBLE);
 
               /* if (peerConnectionClient2 != null) {
                   peerConnectionClient2.close();
                   peerConnectionClient2 = null;
                 }*/
 
-             //   screenRenderLayout.setPosition(SCREEN_X, SCREEN_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
-             //   screenRender.setScalingType(scalingType);
-             //   screenRender.setMirror(false);
-             //   screenRender.requestLayout();
-              //  updateVideoView();
-              }
-
-            }
+          //   screenRenderLayout.setPosition(SCREEN_X, SCREEN_Y, SCREEN_WIDTH, SCREEN_HEIGHT);
+          //   screenRender.setScalingType(scalingType);
+          //   screenRender.setMirror(false);
+          //   screenRender.requestLayout();
+          //  updateVideoView();
         }
-    };
+
+      }
+    }
+  };
 
 
   @Override
@@ -480,6 +494,11 @@ public class CallActivity extends RTCConnection implements
 
   @Override
   public void onWebSocketClose() {
+
+  }
+
+  @Override
+  public void onWebSocketConnected() {
 
   }
 }

@@ -3,7 +3,7 @@
   <color name="colorPrimary">#46BAB5</color>
   <color name="colorPrimaryDark">#46BAB5</color>
   <color name="colorAccent">#46BAB5</color>
-
+  <color name="title_chat">#4cbab4</color>
   <color name="action_text">#0084ff</color>
   <color name="action_text_disable">#949998</color>
   <color name="message_partner">#eeeeee</color>

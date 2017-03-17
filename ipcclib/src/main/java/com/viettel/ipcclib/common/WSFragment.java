@@ -1,7 +1,6 @@
 package com.viettel.ipcclib.common;
 
 import com.viettel.ipcclib.AppRTCClient;
-import com.viettel.ipcclib.CallActivity;
 import com.viettel.ipcclib.PeerConnectionClient;
 import com.viettel.ipcclib.R;
 import com.viettel.ipcclib.WebSocketRTCClient;
@@ -12,7 +11,10 @@ import com.viettel.ipcclib.model.MessageData;
 import com.viettel.ipcclib.model.Service;
 import com.viettel.ipcclib.util.LooperExecutor;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.webrtc.IceCandidate;
+import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 import org.webrtc.StatsReport;
 
@@ -22,26 +24,26 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.LinkedList;
 import java.util.List;
-
-import static com.viettel.ipcclib.RTCConnection.peerConnectionClient;
-import static com.viettel.ipcclib.RTCConnection.peerConnectionClient2;
 
 /**
  * Created by Macbook on 3/17/17.
  */
 
-public class WSFragment extends Fragment {
+public abstract class WSFragment extends Fragment {
+  private static final boolean DEBUG = true;
   private static final String TAG = WSFragment.class.getSimpleName();
   public static final int CONNECTION_REQUEST = 1;
   protected Toast logToast;
   public boolean isError;
-  private Intent intent = null;
+//  private Intent intent = null;
   private boolean isBringToFrontReceiverRegistered;
   public boolean iceConnected;
   private BroadcastReceiver bringToFrontBroadcastReceiver;
@@ -50,8 +52,15 @@ public class WSFragment extends Fragment {
   private WebSocketRTCClient appRtcClient;
   private long callStartedTimeMs;
 
+  public PeerConnectionClient peerConnectionClient = null;
+  public PeerConnectionClient peerConnectionClient2 = null;
+
   // Log |msg| and Toast about it.
   protected void logAndToast(String msg) {
+    if (!DEBUG) {
+      return;
+    }
+
     Log.d(TAG, msg);
     if (logToast != null) {
       logToast.cancel();
@@ -59,6 +68,50 @@ public class WSFragment extends Fragment {
     logToast = Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT);
     logToast.show();
   }
+
+//  private void initIntent() {
+//    if (validateUrl(Configs.ROOM_URL)) {
+//      Uri uri = Uri.parse(Configs.ROOM_URL);
+//      intent = new Intent(this, ConnectActivity.class);
+//      intent.setData(uri);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, videoCallEnabled);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_WIDTH, videoWidth);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_HEIGHT, videoHeight);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_FPS, cameraFps);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, captureQualitySlider);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_BITRATE, videoStartBitrate);
+//      intent.putExtra(CallActivity.EXTRA_VIDEOCODEC, videoCodec);
+//      intent.putExtra(CallActivity.EXTRA_HWCODEC_ENABLED, hwCodec);
+//      intent.putExtra(CallActivity.EXTRA_CAPTURETOTEXTURE_ENABLED, captureToTexture);
+//      intent.putExtra(CallActivity.EXTRA_NOAUDIOPROCESSING_ENABLED, noAudioProcessing);
+//      intent.putExtra(CallActivity.EXTRA_AECDUMP_ENABLED, aecDump);
+//      intent.putExtra(CallActivity.EXTRA_OPENSLES_ENABLED, useOpenSLES);
+//      intent.putExtra(CallActivity.EXTRA_AUDIO_BITRATE, audioStartBitrate);
+//      intent.putExtra(CallActivity.EXTRA_AUDIOCODEC, audioCodec);
+//      intent.putExtra(CallActivity.EXTRA_DISPLAY_HUD, displayHud);
+//      intent.putExtra(CallActivity.EXTRA_TRACING, tracing);
+//      intent.putExtra(CallActivity.EXTRA_CMDLINE, commandLineRun);
+//      intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
+//    }
+//  }
+//
+//  public boolean validateUrl(String url) {
+//    //if (URLUtil.isHttpsUrl(url) || URLUtil.isHttpUrl(url)) {
+//    if (isWSUrl(url) || isWSSUrl(url)) {
+//      return true;
+//    }
+//
+//    new AlertDialog.Builder(getActivity())
+//        .setTitle(getText(R.string.invalid_url_title))
+//        .setMessage(getString(R.string.invalid_url_text, url))
+//        .setCancelable(false)
+//        .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+//          public void onClick(DialogInterface dialog, int id) {
+//            dialog.cancel();
+//          }
+//        }).create().show();
+//    return false;
+//  }
 
   public boolean isContextAvailable() {
     return getActivity() != null && !getActivity().isFinishing();
@@ -119,6 +172,8 @@ public class WSFragment extends Fragment {
     Log.i(TAG, "creating appRtcClient with roomUri:" + wsurl + " from:" + from);
     // Create connection client and connection parameters.
     appRtcClient = new WebSocketRTCClient(mSignalingEvents, new LooperExecutor());
+    // todo fake
+    appRtcClient.setServiceId(28);
 
     connectToWebsocket();
   }
@@ -135,7 +190,7 @@ public class WSFragment extends Fragment {
   }
 
   private void connectToUser(int runTimeMs) {
-//      initTurnServer();
+    initTurnServer();
     appRtcClient.initUser();
     String to = "112";
     roomConnectionParameters.initiator = true;
@@ -148,6 +203,112 @@ public class WSFragment extends Fragment {
           new IntentFilter(QuickstartPreferences.INCOMING_CALL));
       isBringToFrontReceiverRegistered = true;
     }
+  }
+
+  private void initTurnServer(){
+    String dataJsonTurn="{\n" +
+        "    \"params\": {\n" +
+        "        \"pc_config\": {\n" +
+        "            \"iceServers\": [\n" +
+        "                           {\n" +
+        "                           \"username\": \"\",\n" +
+        "                           \"password\": \"\",\n" +
+        "                           \"urls\": [\n" +
+        "                                    \"stun:10.60.96.56:8478?transport=udp\",\n" +
+        "                                    \"stun:10.60.96.56:8478?transport=tcp\",\n" +
+        "                                    \"stun:stun.l.google.com:19302\",\n" +
+        "                                    \"stun:stun1.l.google.com:19302\",\n" +
+        "                                    \"stun:stun2.l.google.com:19302\",\n" +
+        "                                    \"stun:stun3.l.google.com:19302\",\n" +
+        "                                    \"stun:stun4.l.google.com:19302\",\n" +
+        "                                    \"stun:stun.ekiga.net\",\n" +
+        "                                    \"stun:stun.ideasip.com\",\n" +
+        "                                    \"stun:stun.schlund.de\",\n" +
+        "                                    \"stun:stun.voiparound.com\",\n" +
+        "                                    \"stun:stun.voipbuster.com\",\n" +
+        "                                    \"stun:stun.voipstunt.com\",\n" +
+        "                                    \"stun:stun.voxgratia.org\",\n" +
+        "                                    \"stun:stun.services.mozilla.com\"\n" +
+        "                                    ]\n" +
+        "                           },\n" +
+        "                           {\n" +
+        "                           \"username\": \"viettel\",\n" +
+        "                           \"password\": \"123456aA\",\n" +
+        "                           \"urls\": [\n" +
+        "                                    \"turn:10.60.96.56:8478\"\n" +
+        "                                    ]\n" +
+        "                           }\n" +
+        "                           ]\n" +
+        "        }\n" +
+        "    },\n" +
+        "    \"result\": \"SUCCESS\"\n" +
+        "}\n";
+    JSONObject appConfig = null;
+    try {
+      appConfig = new JSONObject(dataJsonTurn);
+      String result = appConfig.getString("result");
+      Log.i(TAG, "client debug ");
+      if (!result.equals("SUCCESS")) {
+        return;
+      }
+
+      String params = appConfig.getString("params");
+      appConfig = new JSONObject(params);
+      LinkedList<PeerConnection.IceServer> iceServers = WebSocketRTCClient.iceServersFromPCConfigJSON(appConfig.getString("pc_config"));
+      AppRTCClient.SignalingParameters signalingParameters = new AppRTCClient.SignalingParameters(iceServers);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+  }
+
+  protected void sendMessage(String msg) {
+    appRtcClient.sendTextMessage(msg);
+  }
+
+  protected void sendTypingStatus(boolean typing) {
+    appRtcClient.sendTypingStatus(typing);
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    if (peerConnectionClient != null) {
+      peerConnectionClient.stopVideoSource();
+    }
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    if (peerConnectionClient != null) {
+      peerConnectionClient.startVideoSource();
+    }
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+
+    if (appRtcClient != null) {
+      appRtcClient.sendStopToPeer();
+      appRtcClient.leaveConversation();
+      appRtcClient.sendDisconnectToPeer();
+    }
+
+    if(appRtcClient != null) {
+      appRtcClient.sendDisconnectToPeer();
+    }
+
+    if(peerConnectionClient != null) {
+      peerConnectionClient.close();
+      peerConnectionClient = null;
+    }
+
+    if(peerConnectionClient2 != null) {
+      peerConnectionClient2.close();
+      peerConnectionClient2 = null;
+    }
+
   }
 
   // Listeners
@@ -231,7 +392,7 @@ public class WSFragment extends Fragment {
   private AppRTCClient.SignalingEvents mSignalingEvents = new AppRTCClient.SignalingEvents() {
     @Override
     public void onConnectedToRoom(AppRTCClient.SignalingParameters params) {
-
+      logAndToast("onConnectedToRoom");
     }
 
     @Override
@@ -241,11 +402,18 @@ public class WSFragment extends Fragment {
 
     @Override
     public void onReciveCall() {
-      Intent newIntent = new Intent(getActivity(), CallActivity.class);
+      Intent newIntent = new Intent(getActivity(), ChatActivity.class);
       newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
       newIntent.putExtra("keep", true);
-      newIntent.putExtras(intent);
+      newIntent.putExtras(getIntent());
       startActivityForResult(newIntent, CONNECTION_REQUEST);
+    }
+
+    public Intent getIntent() {
+      Uri uri = Uri.parse(Configs.ROOM_URL);
+      Intent intent = new Intent(getActivity(), ChatActivity.class);
+      intent.setData(uri);
+      return intent;
     }
 
     @Override
@@ -259,14 +427,16 @@ public class WSFragment extends Fragment {
       logAndToast("Creating OFFER for Screensharing Caller");
       //do nothing here - just in CallActivity
 
-      peerConnectionClient2 = PeerConnectionClient.getInstance(true);
+      if (peerConnectionClient != null) {
+        peerConnectionClient2 = PeerConnectionClient.getInstance(true);
 
-      peerConnectionClient2.createPeerConnectionFactoryScreen(mPeerConnectionEvents);
+        peerConnectionClient2.createPeerConnectionFactoryScreen(mPeerConnectionEvents);
 
-      peerConnectionClient2.createPeerConnectionScreen(peerConnectionClient.getRenderEGLContext(),peerConnectionClient.getScreenRender());
-      // Create offer. Offer SDP will be sent to answering client in
-      // PeerConnectionEvents.onLocalDescription event.
-      peerConnectionClient2.createOffer();
+        peerConnectionClient2.createPeerConnectionScreen(peerConnectionClient.getRenderEGLContext(), peerConnectionClient.getScreenRender());
+        // Create offer. Offer SDP will be sent to answering client in
+        // PeerConnectionEvents.onLocalDescription event.
+        peerConnectionClient2.createOffer();
+      }
     }
 
 
@@ -371,7 +541,7 @@ public class WSFragment extends Fragment {
 
     @Override
     public void onAgentMissedChat() {
-
+      onWSNotFoundAgentAvailable();
     }
 
     @Override
@@ -386,18 +556,45 @@ public class WSFragment extends Fragment {
 
     @Override
     public void onMessageCome(MessageData message) {
-
+      onWSMessageReceived(message);
     }
 
     @Override
-    public void onAgentEndConversation() {
-
+    public void onAgentEndConversation(String agentName) {
+      onWSAgentEndConversation(agentName);
     }
 
     @Override
     public void onServiceListResponse(List<Service> services) {
 
     }
+
+    @Override
+    public void onConnected() {
+      onWSConnected();
+    }
+
+    @Override
+    public void onAgentTyping(String name, boolean typing) {
+      onWSAgentTyping(name, typing);
+    }
+
+    @Override
+    public void onAgentJoinConversation(String fullName) {
+      onWSAgentJoinConversation(fullName);
+    }
   };
+
+  protected abstract void onWSAgentJoinConversation(String fullName);
+
+  protected abstract void onWSAgentEndConversation(String agentName);
+
+  protected abstract void onWSNotFoundAgentAvailable();
+
+  protected abstract void onWSMessageReceived(MessageData message);
+
+  protected abstract void onWSAgentTyping(String name, boolean typing);
+
+  protected abstract void onWSConnected();
 
 }

@@ -166,8 +166,14 @@ public interface AppRTCClient {
 
     void onMessageCome(MessageData message);
 
-    void onAgentEndConversation();
+    void onAgentEndConversation(String agentName);
 
     void onServiceListResponse(List<Service> services);
+
+    void onConnected();
+
+    void onAgentTyping(String name, boolean typing);
+
+    void onAgentJoinConversation(String fullName);
   }
 }

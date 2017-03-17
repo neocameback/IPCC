@@ -24,4 +24,6 @@ public enum ConversationId {
   receiveVideoFrom,
   @SerializedName("onIceCandidate")
   onIceCandidate,
+  @SerializedName("cancelVideoCall")
+  cancelVideoCall,
 }

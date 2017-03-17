@@ -12,6 +12,7 @@ package com.viettel.ipcclib;
 
 
 import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 
 import com.viettel.ipcclib.constants.Configs;
 import com.viettel.ipcclib.constants.ConversationId;
@@ -21,6 +22,7 @@ import com.viettel.ipcclib.model.AppConfig;
 import com.viettel.ipcclib.model.CandidateJ;
 import com.viettel.ipcclib.model.Message;
 import com.viettel.ipcclib.model.MessageData;
+import com.viettel.ipcclib.model.Service;
 import com.viettel.ipcclib.util.LooperExecutor;
 
 import org.json.JSONArray;
@@ -30,20 +32,24 @@ import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import static com.viettel.ipcclib.constants.ConversationId.endVideoCall;
 import static com.viettel.ipcclib.constants.ConversationId.joinRoom;
 import static com.viettel.ipcclib.constants.ConversationId.onIceCandidate;
 import static com.viettel.ipcclib.constants.ConversationId.receiveVideoFrom;
 import static com.viettel.ipcclib.constants.ConversationId.requestVideoCall;
+import static com.viettel.ipcclib.constants.GsonWrapper.getGson;
 import static com.viettel.ipcclib.constants.MessageType.CUSTOMER_LOGIN;
 import static com.viettel.ipcclib.constants.MessageType.CUSTOMER_RESUMING_REQUEST;
 import static com.viettel.ipcclib.constants.MessageType.LEAVE_CONVERSATION;
 import static com.viettel.ipcclib.constants.MessageType.MESSAGE;
 import static com.viettel.ipcclib.constants.MessageType.PING;
+import static com.viettel.ipcclib.constants.MessageType.SEND_IS_CHAT_TYPING;
 import static com.viettel.ipcclib.constants.MessageType.VIDEO_CALL;
 
 
@@ -80,10 +86,11 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
   private RoomConnectionParameters connectionParameters;
 
   private SignalingEvents signalingEvents;
-  public static int userId;
-  public static int userId2;
-  public static String userName;
-  public static int conversationId;
+  private int userId;
+  private int userId2;
+  private String userName;
+  private int conversationId = -1;
+  private int serviceId;
 
   private MessageData agentData;
 
@@ -102,7 +109,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
   @Override
   public void onWebSocketMessage(final String msg) {
 //    try {
-    Message message = GsonWrapper.getGson().fromJson(msg, Message.class);
+    Message message = getGson().fromJson(msg, Message.class);
 //      JSONObject json = new JSONObject(msg);
 
     AppConfig params = message.getParams();
@@ -139,7 +146,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
 //            }
     JsonElement typeJson = message.getType();
 
-    if (typeJson == null || message.getData() == null || typeJson.getAsString().length() > 0) {
+    if (typeJson == null || message.getData() == null || !TextUtils.isDigitsOnly(typeJson.getAsString())) {
       return;
     }
 
@@ -147,7 +154,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
     String response = "";
 
     MessageData data = message.getData();
-    MessageType type = MessageType.valueOf("" + typeJson.getAsInt());
+    MessageType type = MessageType.getValue(typeJson.getAsInt());
     switch (type) {
       case CUSTOMER_LOGIN:
         //user register
@@ -158,11 +165,14 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         userName = data.getName().getAsString();
         //make call;
         socketState = WebSocketChannelClient.WebSocketConnectionState.REGISTERED;
-        makeCall();
+        signalingEvents.onConnected();
+        // todo use video
+//        makeCall();
         break;
 
       case AGENT_INFO_CUSTOMER:
         agentData = message.getData();
+        signalingEvents.onAgentJoinConversation(agentData.getFullName());
         break;
 
       case HAVE_MESSAGE:
@@ -172,6 +182,10 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
       case MESSAGE:
         conversationId = message.getData().getConversationId();
         signalingEvents.onConversationReady();
+        break;
+
+      case SEND_IS_CHAT_TYPING:
+        signalingEvents.onAgentTyping(data.getFullName(), data.isTyping());
         break;
 
       case RESPONSE_AGENT_MISS_CHAT_TO_CUSTOMER:
@@ -184,11 +198,16 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         break;
 
       case AGENT_END_CONVERSATION_CUSTOMER:
-        signalingEvents.onAgentEndConversation();
+        conversationId = -1;
+        signalingEvents.onAgentEndConversation(data.getFullName());
         break;
 
       case RESPONSE_SERVICE_LIST:
-        signalingEvents.onServiceListResponse(data.getServices());
+        if (data.getServices().isJsonArray()) {
+
+          List<Service> services = GsonWrapper.getGson().fromJson(data.getServices(), new TypeToken<List<Service>>(){}.getType());
+          signalingEvents.onServiceListResponse(services);
+        }
         break;
     }
             /*
@@ -314,8 +333,14 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
 
   private void processVideoCall(Message message) {
     MessageData dataO = message.getData();
+    if (dataO == null) {
+      return;
+    }
 
     ConversationId idM = dataO.getId();
+    if (idM == null) {
+      return;
+    }
     switch (idM) {
       case endVideoCall:
         if (socketState == WebSocketChannelClient.WebSocketConnectionState.NEW) {
@@ -326,7 +351,6 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         break;
 
       case joinRoom:
-        //              conversationId = dataO.getInt("conversationId");
         conversationId = dataO.getConversationId();
         joinRoom();
         break;
@@ -400,6 +424,10 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         }
       }
     });
+  }
+
+  public void setServiceId(int serviceId) {
+    this.serviceId = serviceId;
   }
 
   public void sendStopToPeer() {
@@ -518,7 +546,8 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
             .setOs("")
             .setBrowser("")
             .setDeviceType("")
-            .setDomain("LANT_TEST1")
+            .setConversationId(-1)
+            .setDomain(Configs.DOMAIN_TEST)
             .setCountryName("");
 
         Message message = new Message()
@@ -541,7 +570,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
             .setServiceId("28")
             .setConversationId(-1)
             .setMessage("")
-            .setDomain("LANT_TEST1")
+            .setDomain(Configs.DOMAIN_TEST)
             .setId(requestVideoCall);
         Message message = new Message()
             .setData(data)
@@ -787,9 +816,9 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
             .setDomain("14")
             .setCandidate(candidateJ);
         if (!isScreenSharing) {
-          data.setName(GsonWrapper.getGson().toJsonTree(userId));
+          data.setName(getGson().toJsonTree(userId));
         } else {
-          data.setName(GsonWrapper.getGson().toJsonTree(userId2));
+          data.setName(getGson().toJsonTree(userId2));
         }
 
         Message message = new Message()
@@ -810,6 +839,104 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
   @Override
   public void onWebSocketError(String description) {
     reportError("WebSocket error: " + description);
+  }
+
+  @Override
+  public void onWebSocketConnected() {
+    connectToUser(0);
+    initChat();
+  }
+
+  private void initChat() {
+//    executor.execute(new Runnable() {
+//      @Override
+//      public void run() {
+//        MessageData data = new MessageData()
+//            .setVisitorId(-1)
+//            .setVisitorName("")
+//            .setIpAddress("192.168.0.132:8939")
+//            .setHost("192.168.0.132:8939")
+//            .setOs("")
+//            .setBrowser("")
+//            .setDeviceType("")
+//            .setConversationId(-1)
+//            .setDomain(Configs.DOMAIN_TEST)
+//            .setCountryName("");
+//
+//        Message message = new Message()
+//            .setData(data)
+//            .setService(CUSTOMER_LOGIN);
+//
+//        wsClient.send(message);
+//      }
+//    });
+
+  }
+
+  private void connectToUser(int runTimeMs) {
+    initTurnServer();
+    initUser();
+//    login();
+    String to = "112";
+//    roomConnectionParameters.initiator = true;
+//    roomConnectionParameters.to = to;
+  }
+
+  private void initTurnServer(){
+    String dataJsonTurn="{\n" +
+        "    \"params\": {\n" +
+        "        \"pc_config\": {\n" +
+        "            \"iceServers\": [\n" +
+        "                           {\n" +
+        "                           \"username\": \"\",\n" +
+        "                           \"password\": \"\",\n" +
+        "                           \"urls\": [\n" +
+        "                                    \"stun:10.60.96.56:8478?transport=udp\",\n" +
+        "                                    \"stun:10.60.96.56:8478?transport=tcp\",\n" +
+        "                                    \"stun:stun.l.google.com:19302\",\n" +
+        "                                    \"stun:stun1.l.google.com:19302\",\n" +
+        "                                    \"stun:stun2.l.google.com:19302\",\n" +
+        "                                    \"stun:stun3.l.google.com:19302\",\n" +
+        "                                    \"stun:stun4.l.google.com:19302\",\n" +
+        "                                    \"stun:stun.ekiga.net\",\n" +
+        "                                    \"stun:stun.ideasip.com\",\n" +
+        "                                    \"stun:stun.schlund.de\",\n" +
+        "                                    \"stun:stun.voiparound.com\",\n" +
+        "                                    \"stun:stun.voipbuster.com\",\n" +
+        "                                    \"stun:stun.voipstunt.com\",\n" +
+        "                                    \"stun:stun.voxgratia.org\",\n" +
+        "                                    \"stun:stun.services.mozilla.com\"\n" +
+        "                                    ]\n" +
+        "                           },\n" +
+        "                           {\n" +
+        "                           \"username\": \"viettel\",\n" +
+        "                           \"password\": \"123456aA\",\n" +
+        "                           \"urls\": [\n" +
+        "                                    \"turn:10.60.96.56:8478\"\n" +
+        "                                    ]\n" +
+        "                           }\n" +
+        "                           ]\n" +
+        "        }\n" +
+        "    },\n" +
+        "    \"result\": \"SUCCESS\"\n" +
+        "}\n";
+    JSONObject appConfig = null;
+    try {
+      appConfig = new JSONObject(dataJsonTurn);
+      String result = appConfig.getString("result");
+      Log.i(TAG, "client debug ");
+      if (!result.equals("SUCCESS")) {
+        return;
+      }
+
+      String params = appConfig.getString("params");
+      appConfig = new JSONObject(params);
+      LinkedList<PeerConnection.IceServer> iceServers = WebSocketRTCClient.iceServersFromPCConfigJSON(appConfig.getString("pc_config"));
+      AppRTCClient.SignalingParameters signalingParameters = new AppRTCClient.SignalingParameters(iceServers);
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+
   }
 
   // --------------------------------------------------------------------
@@ -833,14 +960,37 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
       @Override
       public void run() {
         MessageData data = new MessageData()
-            .setServiceId(43 + "")
-            .setConversationId(-1)
+            .setServiceId(serviceId + "")
+            .setConversationId(conversationId)
             .setMessage(messageText)
+            .setUserId(userId)
+            .setVisitorId(userId)
             .setDomain(Configs.DOMAIN_TEST)
             .setHost("messageText");
 
         Message message = new Message()
             .setService(MESSAGE)
+            .setData(data);
+        // Call receiver sends ice candidates to websocket server.
+        wsClient.send(message);
+      }
+    });
+  }
+
+  public void sendTypingStatus(final boolean typing) {
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        MessageData data = new MessageData()
+            .setServiceId(serviceId + "")
+            .setConversationId(conversationId)
+            .setUserId(userId)
+            .setUserName(userName)
+            .setTyping(typing)
+            .setDomain(Configs.DOMAIN_TEST);
+
+        Message message = new Message()
+            .setService(SEND_IS_CHAT_TYPING)
             .setData(data);
         // Call receiver sends ice candidates to websocket server.
         wsClient.send(message);
@@ -879,7 +1029,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
             .setUserName(username)
             .setType(PING)
             .setTyping(false)
-            .setServiceId("" + 43)
+            .setServiceId("" + serviceId)
             .setConversationId(conversationId);
 
         Message message = new Message()

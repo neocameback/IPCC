@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="format_join_chat"><b>%s</b> <i>đã tham gia hội thoại</i></string>
+  <string name="leave_chat"><b>%s</b> <i>đã thoát hội thoại</i></string>
+  <string name="end_chat"><b>%s</b> <i>đã kết thúc hội thoại</i></string>
+  <string name="ipcc_support">Chăm sóc khách hàng</string>
+  <string name="ask_us">Sẵn lòng giải đáp mọi thắc mắc</string>
+  <string name="no_agent_available">Hiện tại không có tư vấn viên rảnh</string>
+  <string name="agent_busy_for_video_call">Tư vấn viên không thể nhận VideoCall lúc này</string>
+  <string name="chat_good">Bạn đã đánh giá tốt</string>
+  <string name="chat_bad">Bạn đã đánh giá kém</string>
+  <string name="chat_remove">Bạn đã hủy đánh giá</string>
+  <string name="file_size_limit">Dung lượng file không được vượt quá 2Mb</string>
+  <string name="chat_ended">Cảm ơn Quý khách đã tin dung sản phẩm dịch vụ của Viettel, để biết thêm nhiều thông tin hữu ích kính mời Quý khách cài đặt ứng dụng My Viettel miễn phí tại đây www.viettel.vn/app</string>
+  <string name="upload_fail">Gửi file không thành công, vui lòng thử lại sau!</string>
+
+  <string name="name_agent">CSKH Viettel</string>
+</resources>

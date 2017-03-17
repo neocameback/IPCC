@@ -6,5 +6,5 @@ public interface ChatTextProcess {
 
   void addMessage(Message message);
 
-  ConversationAdapter getConversationAdapter();
+  ConversationNotGroupAdapter getConversationNotGroupAdapter();
 }

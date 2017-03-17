@@ -24,6 +24,8 @@ public class GsonWrapper {
       mGson = new GsonBuilder()
           .registerTypeAdapter(MessageType.class, new MessageTypeDeserializer())
           .registerTypeAdapter(MessageType.class, new MessageTypeSerializer())
+          .registerTypeAdapter(ConversationId.class, new ConverstationIdDeserializer())
+          .registerTypeAdapter(ConversationId.class, new ConversationIdSerializer())
           .create();
     }
 
@@ -37,7 +39,23 @@ public class GsonWrapper {
         throws JsonParseException {
       int typeInt = json.getAsInt();
 
-      return MessageType.valueOf(typeInt + "");
+      return MessageType.getValue(typeInt);
+    }
+  }
+
+  private static class ConverstationIdDeserializer implements
+      JsonDeserializer<ConversationId> {
+    @Override
+    public ConversationId deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext ctx)
+        throws JsonParseException {
+      try {
+        String convId = json.getAsString();
+
+        return ConversationId.valueOf(convId);
+      } catch (IllegalArgumentException ex) {
+        ex.printStackTrace();
+        return null;
+      }
     }
   }
 
@@ -46,6 +64,14 @@ public class GsonWrapper {
     @Override
     public JsonElement serialize(MessageType src, Type typeOfSrc, JsonSerializationContext context) {
       return new JsonPrimitive(src.getExtension());
+    }
+  }
+
+  private static class ConversationIdSerializer implements
+      JsonSerializer<ConversationId> {
+    @Override
+    public JsonElement serialize(ConversationId src, Type typeOfSrc, JsonSerializationContext context) {
+      return new JsonPrimitive(src.toString());
     }
   }
 }

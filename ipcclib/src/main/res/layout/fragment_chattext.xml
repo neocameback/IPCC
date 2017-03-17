@@ -4,69 +4,105 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-  <ProgressBar
-    android:id="@+id/chat_text_load_earlier_pb"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/load_more_progress"
-    android:background="@android:color/transparent"
-    android:visibility="gone"/>
+  <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="?android:attr/actionBarSize"
+      android:background="@color/title_chat">
 
-  <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@android:color/holo_red_dark"
-    android:gravity="center"
-    android:padding="@dimen/padding_small"
-    android:text="@string/lost_connection"
-    android:textColor="@android:color/white"/>
-
-  <android.support.v7.widget.RecyclerView
-    android:id="@+id/chat_text_conversation_rv"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1">
-
-  </android.support.v7.widget.RecyclerView>
-
-  <TextView
-    android:id="@+id/chat_text_typing_hint_tv"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:paddingLeft="@dimen/padding_small"
-    android:text="@string/someone_typing"
-    android:textColor="@color/action_text_disable"/>
-
-  <View
-    android:layout_width="match_parent"
-    android:layout_height="2px"
-    android:background="#cacaca"/>
-
-  <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingBottom="@dimen/padding_small"
-    android:paddingLeft="@dimen/padding_small"
-    android:paddingTop="@dimen/padding_small">
-
-    <EditText
-      android:id="@+id/chat_text_content_et"
-      android:layout_width="0dp"
-      android:layout_height="wrap_content"
-      android:layout_weight="1"
-      android:background="@android:color/transparent"
-      android:hint="@string/chat_hint"
-      android:maxLines="5"
-      android:padding="@dimen/padding_small"/>
+    <ImageView
+        android:id="@+id/chat_text_back_img"
+        style="@style/Icon"
+        android:src="@drawable/ic_close"/>
 
     <TextView
-      android:id="@+id/chat_text_send_tv"
+        style="@style/ToolBarTitle.bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/chat_text_title"/>
+
+    <ImageView
+        android:id="@+id/video_call_iv"
+        style="@style/Icon"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_video_call"/>
+  </RelativeLayout>
+
+  <ProgressBar
+      android:id="@+id/chat_text_load_earlier_pb"
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/load_more_progress"
+      android:background="@android:color/transparent"
+      android:visibility="gone"/>
+
+  <TextView
+      android:id="@+id/top_messgage_tv"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="@android:color/holo_green_light"
+      android:gravity="center"
+      android:padding="@dimen/padding_small"
+      android:text="@string/connecting"
+      android:textColor="@android:color/white"/>
+
+  <LinearLayout
+      android:gravity="bottom"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/chat_text_conversation_rv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    </android.support.v7.widget.RecyclerView>
+  </LinearLayout>
+  <TextView
+      android:id="@+id/chat_text_typing_hint_tv"
+      android:visibility="gone"
+      android:layout_gravity="center"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:padding="@dimen/padding_small"
-      android:text="@string/chat_send_tv"
-      android:textColor="@color/action_send_color"
-      android:textStyle="bold"/>
+      android:paddingLeft="@dimen/padding_small"
+      android:text="@string/someone_typing"
+      android:textColor="@color/action_text_disable"/>
+
+  <View
+      android:layout_width="match_parent"
+      android:layout_height="2px"
+      android:background="#cacaca"/>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center_vertical"
+      android:orientation="horizontal"
+      android:paddingBottom="@dimen/padding_chat_item"
+      android:paddingLeft="@dimen/padding_chat_item"
+      android:paddingTop="@dimen/padding_chat_item">
+
+    <EditText
+        android:id="@+id/chat_text_content_et"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/bg_chat_et"
+        android:hint="@string/chat_hint"
+        android:maxLines="5"
+        android:padding="@dimen/padding_small"/>
+
+    <TextView
+        android:id="@+id/chat_text_send_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/padding_small"
+        android:paddingLeft="@dimen/padding_medium"
+        android:paddingRight="@dimen/padding_medium"
+        android:paddingTop="@dimen/padding_small"
+        android:text="@string/chat_send_tv"
+        android:textColor="@color/action_send_color"
+        android:textStyle="bold"/>
   </LinearLayout>
 </LinearLayout>

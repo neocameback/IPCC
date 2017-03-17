@@ -6,8 +6,6 @@ import com.google.gson.annotations.SerializedName;
 import com.viettel.ipcclib.constants.ConversationId;
 import com.viettel.ipcclib.constants.MessageType;
 
-import java.util.List;
-
 /**
  * Created by Macbook on 3/16/17.
  */
@@ -23,7 +21,7 @@ public class MessageData {
   private String serviceId;
 
   @SerializedName("conversationId")
-  private int conversationId;
+  private int conversationId = -1;
 
   @SerializedName("domain")
   private String domain;
@@ -43,7 +41,7 @@ public class MessageData {
   @SerializedName("browser")
   private String browser;
 
-  @SerializedName("deviceType")
+  @SerializedName("device_type")
   private String deviceType;
 
   @SerializedName("message")
@@ -119,7 +117,7 @@ public class MessageData {
   private MessageType type;
 
   @SerializedName("data")
-  private List<Service> services;
+  private JsonElement services;
 
   public String getVisitorName() {
     return visitorName;
@@ -436,11 +434,11 @@ public class MessageData {
     return this;
   }
 
-  public List<Service> getServices() {
+  public JsonElement getServices() {
     return services;
   }
 
-  public MessageData setServices(List<Service> services) {
+  public MessageData setServices(JsonElement services) {
     this.services = services;
     return this;
   }

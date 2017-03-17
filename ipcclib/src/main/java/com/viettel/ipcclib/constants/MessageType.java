@@ -378,4 +378,14 @@ public enum MessageType {
     this.extension = extension;
     return this;
   }
+
+  public static MessageType getValue(int value) {
+    for (MessageType type : MessageType.values()) {
+      if (value == type.extension) {
+        return type;
+      }
+    }
+
+    return null;
+  }
 }

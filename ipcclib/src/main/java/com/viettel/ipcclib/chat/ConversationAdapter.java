@@ -11,7 +11,6 @@ import android.widget.ImageView;
 
 import java.util.List;
 
-
 public class ConversationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
   private final int TYPE_OWNER = 1;
   private final int TYPE_PARTNER = 0;
