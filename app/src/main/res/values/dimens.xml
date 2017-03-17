@@ -9,5 +9,6 @@
   <dimen name="item_one_message_time_tv">10sp</dimen>
   <dimen name="padding_owner_chat">50dp</dimen>
   <dimen name="padding_medium">15dp</dimen>
+  <dimen name="padding_message_outside">50dp</dimen>
 </resources>
 
