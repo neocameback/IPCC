@@ -6,14 +6,18 @@ import java.util.List;
 /**
  * A conversation
  * Created by Alan's on 3/16/2017.
+ * Using Group message if you want to group message by user
+ * for simple case, using the messages list
  */
 
 public class ConversationModel {
   private String mAvatarPartner;
   private List<GroupMessage> mGroupMessages;
+  private List<Message> messages;
 
   public ConversationModel() {
     mGroupMessages = new ArrayList<>();
+    messages = new ArrayList<>();
   }
 
   public ConversationModel(String mAvatarPartner, List<GroupMessage> mGroupMessages) {
@@ -39,6 +43,7 @@ public class ConversationModel {
   }
 
   public void addMessage(Message m) {
+    messages.add(m);
     if (mGroupMessages.size() == 0) {
       List<Message> messages = new ArrayList<>();
       messages.add(m);
@@ -55,5 +60,13 @@ public class ConversationModel {
         mGroupMessages.add(groupMessage);
       }
     }
+  }
+
+  public List<Message> getMessages() {
+    return messages;
+  }
+
+  public void setMessages(List<Message> messages) {
+    this.messages = messages;
   }
 }
