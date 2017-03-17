@@ -21,6 +21,12 @@
     <item name="android:layout_gravity">center</item>
   </style>
 
+  <style name="VideoCallItem">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_gravity">center</item>
+  </style>
+
   <style name="ToolBarTitle.bold">
     <item name="android:textStyle">bold</item>
   </style>

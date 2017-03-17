@@ -70,7 +70,7 @@ public class VideoCallFragment extends Fragment
     implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback {
 
   private static final int CODE_DRAW_OVER_OTHER_APP_PERMISSION = 2084;
-  private ImageView mBackIv, mEndCallIv, mMuteAudioIv, mSwapCameraIv, mScaleVideoIv;
+  private ImageView mBackIv, mEndCallIv, mMuteAudioIv, mVideoCallIv;
   public static final String CAMERA_FRONT = "1";
   public static final String CAMERA_BACK = "0";
 
@@ -403,16 +403,16 @@ public class VideoCallFragment extends Fragment
 //    mTextureView = (AutoFitTextureView) view.findViewById(R.id.video_call_owner_texture);
     mMuteAudioIv = (ImageView) view.findViewById(R.id.mute_audio_iv);
     mEndCallIv = (ImageView) view.findViewById(R.id.end_call_iv);
-    mSwapCameraIv = (ImageView) view.findViewById(R.id.swap_camera_iv);
-    mScaleVideoIv = (ImageView) view.findViewById(R.id.scale_video_iv);
+    mVideoCallIv = (ImageView) view.findViewById(R.id.video_call_iv);
+//    mSwapCameraIv = (ImageView) view.findViewById(R.id.swap_camera_iv);
+//    mScaleVideoIv = (ImageView) view.findViewById(R.id.scale_video_iv);
     mBackIv = (ImageView) view.findViewById(R.id.back_iv);
 
     mMuteAudioIv.setOnClickListener(this);
     mEndCallIv.setOnClickListener(this);
-    mSwapCameraIv.setOnClickListener(this);
-    mScaleVideoIv.setOnClickListener(this);
+    mVideoCallIv.setOnClickListener(this);
+//    mScaleVideoIv.setOnClickListener(this);
     mBackIv.setOnClickListener(this);
-
 
   }
 
@@ -477,10 +477,9 @@ public class VideoCallFragment extends Fragment
       // TODO: 3/16/2017 end video call
     } else if (v == mMuteAudioIv) {
       // TODO: 3/16/2017 mute audio video call
-    } else if (v == mSwapCameraIv) {
-      swapCamera();
-    } else if (v == mScaleVideoIv) {
-      // TODO: 3/16/2017 scale video call
+    } else if (v == mVideoCallIv) {
+//      swapCamera();
+      // TODO: 3/17/2017 allow video call
     } else if (v == mBackIv) {
       // TODO: 3/16/2017 finish video call
     }
