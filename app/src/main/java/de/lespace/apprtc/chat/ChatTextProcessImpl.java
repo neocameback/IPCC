@@ -7,17 +7,17 @@ package de.lespace.apprtc.chat;
 
 public class ChatTextProcessImpl implements ChatTextProcess {
   private ConversationView mConversationView;
-  private ConversationAdapter mConversationAdapter;
+  private ConversationNotGroupAdapter mConversationNotGroupAdapter;
 
   public ChatTextProcessImpl(ConversationView mConversationView) {
     this.mConversationView = mConversationView;
-    mConversationAdapter = new ConversationAdapter(mConversationModels.getmGroupMessages());
-    mConversationView.initView(mConversationAdapter);
+    mConversationNotGroupAdapter = new ConversationNotGroupAdapter(mConversationModels.getMessages());
+    mConversationView.initView(mConversationNotGroupAdapter);
   }
 
   @Override
-  public ConversationAdapter getConversationAdapter() {
-    return mConversationAdapter;
+  public ConversationNotGroupAdapter getConversationNotGroupAdapter() {
+    return mConversationNotGroupAdapter;
   }
 
   private ConversationModel mConversationModels = new ConversationModel();
@@ -30,7 +30,7 @@ public class ChatTextProcessImpl implements ChatTextProcess {
   @Override
   public void addMessage(Message message) {
     mConversationModels.addMessage(message);
-    mConversationAdapter.notifyDataSetChanged();
-    mConversationView.smoothScrollToBottom(mConversationAdapter.getItemCount()-1);
+    mConversationNotGroupAdapter.notifyDataSetChanged();
+    mConversationView.smoothScrollToBottom(mConversationNotGroupAdapter.getItemCount() - 1);
   }
 }

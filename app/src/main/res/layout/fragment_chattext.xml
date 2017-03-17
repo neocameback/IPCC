@@ -4,6 +4,34 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
+  <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="?android:attr/actionBarSize"
+    android:background="@color/title_chat">
+
+    <ImageView
+      android:id="@+id/chat_text_back_img"
+      android:layout_width="wrap_content"
+      android:layout_height="match_parent"
+      android:padding="@dimen/padding_small"
+      android:src="@drawable/ic_close"/>
+
+    <TextView
+      style="@style/ToolBarTitle.bold"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_centerInParent="true"
+      android:text="@string/chat_text_title"/>
+
+    <ImageView
+      android:layout_width="wrap_content"
+      android:layout_height="match_parent"
+      android:layout_alignParentRight="true"
+      android:layout_centerVertical="true"
+      android:padding="@dimen/padding_small"
+      android:src="@drawable/ic_recorder"/>
+  </RelativeLayout>
+
   <ProgressBar
     android:id="@+id/chat_text_load_earlier_pb"
     android:layout_width="match_parent"
@@ -55,7 +83,7 @@
       android:layout_width="0dp"
       android:layout_height="wrap_content"
       android:layout_weight="1"
-      android:background="@android:color/transparent"
+      android:background="@drawable/bg_chat_et"
       android:hint="@string/chat_hint"
       android:maxLines="5"
       android:padding="@dimen/padding_small"/>
@@ -64,7 +92,10 @@
       android:id="@+id/chat_text_send_tv"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:padding="@dimen/padding_small"
+      android:paddingBottom="@dimen/padding_small"
+      android:paddingLeft="@dimen/padding_medium"
+      android:paddingRight="@dimen/padding_medium"
+      android:paddingTop="@dimen/padding_small"
       android:text="@string/chat_send_tv"
       android:textColor="@color/action_send_color"
       android:textStyle="bold"/>
