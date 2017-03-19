@@ -95,4 +95,8 @@ public class ChatTextFragment extends Fragment implements View.OnClickListener, 
     mConversationRv.smoothScrollToPosition(i);
   }
 
+
+  public static ChatTextFragment newInstance() {
+    return new ChatTextFragment();
+  }
 }

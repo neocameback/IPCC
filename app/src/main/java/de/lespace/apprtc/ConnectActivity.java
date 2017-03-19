@@ -56,6 +56,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.lespace.apprtc.constants.Configs;
+import de.lespace.apprtc.model.Message;
+import de.lespace.apprtc.model.MessageData;
+import de.lespace.apprtc.model.Service;
 import de.lespace.apprtc.util.LooperExecutor;
 
 
@@ -169,9 +173,9 @@ public class ConnectActivity extends RTCConnection
     keyprefRoom = getString(R.string.pref_room_key);
     keyprefRoomList = getString(R.string.pref_room_list_key);
     from = sharedPref.getString(keyprefFrom, getString(R.string.pref_from_default));
-    String roomUrl = sharedPref.getString(
-            keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
-   roomUrl="wss://192.168.0.117:8898";
+//    String roomUrl = sharedPref.getString(
+//            keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
+
     // Video call enabled flag.
     boolean videoCallEnabled = sharedPref.getBoolean(keyprefVideoCallEnabled,
             Boolean.valueOf(getString(R.string.pref_videocall_default)));
@@ -196,6 +200,7 @@ public class ConnectActivity extends RTCConnection
     boolean useOpenSLES = sharedPref.getBoolean(
             keyprefOpenSLES,
             Boolean.valueOf(getString(R.string.pref_opensles_default)));
+
 
     // Check for mandatory permissions.
     int counter = 0;
@@ -312,10 +317,10 @@ public class ConnectActivity extends RTCConnection
 
     boolean tracing = sharedPref.getBoolean(keyprefTracing, Boolean.valueOf(getString(R.string.pref_tracing_default)));
 
-    Log.d(TAG, "Connecting from " + from + " at URL " + roomUrl);
+    Log.d(TAG, "Connecting from " + from + " at URL " + Configs.ROOM_URL);
 
-    if (validateUrl(roomUrl)) {
-      Uri uri = Uri.parse(roomUrl);
+    if (validateUrl(Configs.ROOM_URL)) {
+      Uri uri = Uri.parse(Configs.ROOM_URL);
       intent = new Intent(this, ConnectActivity.class);
       intent.setData(uri);
       intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, videoCallEnabled);
@@ -346,7 +351,7 @@ public class ConnectActivity extends RTCConnection
 
     // If an implicit VIEW intent is launching the app, go directly to that URL.
     //final Intent intent = getIntent();
-    Uri wsurl = Uri.parse(roomUrl);
+    Uri wsurl = Uri.parse(Configs.ROOM_URL);
     //intent.getData();
     Log.d(TAG, "connecting to:" + wsurl.toString());
     if (wsurl == null) {
@@ -697,7 +702,7 @@ public class ConnectActivity extends RTCConnection
   }
 
   @Override
-  public void onIncomingScreenCall(JSONObject from) {
+  public void onIncomingScreenCall(Message from) {
     // super.onIncomingScreenCall()
     logAndToast("Creating OFFER for Screensharing Caller");
     //do nothing here - just in CallActivity
@@ -836,12 +841,47 @@ public class ConnectActivity extends RTCConnection
   }
 
   @Override
+  public void onConversationReady() {
+
+  }
+
+  @Override
+  public void onAgentMissedChat() {
+
+  }
+
+  @Override
+  public void endVideoCall() {
+
+  }
+
+  @Override
+  public void onNoAgentResponse() {
+
+  }
+
+  @Override
+  public void onMessageCome(MessageData message) {
+
+  }
+
+  @Override
+  public void onAgentEndConversation() {
+
+  }
+
+  @Override
   public void onWebSocketMessage(String message) {
     //do nothing
   }
 
   @Override
   public void onWebSocketClose() {
+
+  }
+
+  @Override
+  public void onServiceListResponse(List<Service> services) {
 
   }
 

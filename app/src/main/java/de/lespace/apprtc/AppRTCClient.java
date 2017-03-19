@@ -10,12 +10,15 @@
 
 package de.lespace.apprtc;
 
-import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 
 import java.util.List;
+
+import de.lespace.apprtc.model.Message;
+import de.lespace.apprtc.model.MessageData;
+import de.lespace.apprtc.model.Service;
 
 /**
  * AppRTCClient is the interface representing an AppRTC client.
@@ -25,7 +28,7 @@ public interface AppRTCClient {
   /**
    * Struct holding the connection parameters of an AppRTC room.
    */
-  public static class RoomConnectionParameters {
+  class RoomConnectionParameters {
 
     public String roomUrl;
     public String from;
@@ -48,12 +51,12 @@ public interface AppRTCClient {
    * parameters. Once connection is established onConnectedToRoom()
    * callback with room parameters is invoked.
    */
-  public void connectToWebsocket(RoomConnectionParameters connectionParameters);
+  void connectToWebsocket(RoomConnectionParameters connectionParameters);
 
   /**
    * Send offer SDP to the other participant.
    */
-  public void call(final SessionDescription sdp);
+  void call(final SessionDescription sdp);
   /**
    * Send offer SDP to the other participant.
    */
@@ -62,35 +65,45 @@ public interface AppRTCClient {
   /**
    * Send answer SDP to the other participant.
    */
-  public void sendOfferSdp(final SessionDescription sdp, final boolean isScreensharing);
+  void sendOfferSdp(final SessionDescription sdp, final boolean isScreensharing);
 
   /**
    * Send Ice candidate to the other participant.
    */
-  public void sendLocalIceCandidate(final IceCandidate candidate, final boolean isScreensharing);
+  void sendLocalIceCandidate(final IceCandidate candidate, final boolean isScreensharing);
 
   /**
    * Disconnect from room.
    */
-  public void reconnect();
+  void reconnect();
 
-  public void initUser();
-  public void makeCall();
-    public void joinRoom();
+  void register();
+
+  void login();
+
+  void initUser();
+  void makeCall();
+    void joinRoom();
 
   /**
    * Send stop message to peer
    */
-  public void sendStopToPeer();
+  void sendStopToPeer();
   /**
    * Disconnect from room.
    */
-  public void sendDisconnectToPeer();
+  void sendDisconnectToPeer();
+
+  void sendTextMessage(String messageText);
+
+  void leaveConversation();
+
+  void updateUserInfo(String username, String email);
 
   /**
    * Struct holding the signaling parameters of an AppRTC room.
    */
-  public static class SignalingParameters {
+  class SignalingParameters {
     public static List<PeerConnection.IceServer> iceServers;
 
     public SignalingParameters(
@@ -104,45 +117,58 @@ public interface AppRTCClient {
    *
    * <p>Methods are guaranteed to be invoked on the UI thread of |activity|.
    */
-  public static interface SignalingEvents {
+  interface SignalingEvents {
     /**
      * Callback fired once the room's signaling parameters
      * SignalingParameters are extracted.
      */
-    public void onConnectedToRoom(final SignalingParameters params);
+    void onConnectedToRoom(final SignalingParameters params);
 
-    public void onUserListUpdate(String response);
+    void onUserListUpdate(String response);
 
-    public void onReciveCall();
-    public void onIncomingCall(String from);
-    public void onIncomingScreenCall(JSONObject from); //Screensharing only
+    void onReciveCall();
+    void onIncomingCall(String from);
+    void onIncomingScreenCall(Message from); //Screensharing only
 
-    public void onStartCommunication(final SessionDescription sdp);
-    public void onStartScreenCommunication(final SessionDescription sdp); //Screensharing only
+    void onStartCommunication(final SessionDescription sdp);
+    void onStartScreenCommunication(final SessionDescription sdp); //Screensharing only
 
     /**
      * Callback fired once remote SDP is received.
      */
-    public void onRemoteDescription(final SessionDescription sdp);
-    public void onRemoteScreenDescription(final SessionDescription sdp);
+    void onRemoteDescription(final SessionDescription sdp);
+    void onRemoteScreenDescription(final SessionDescription sdp);
 
     /**
      * Callback fired once remote Ice candidate is received.
      */
-    public void onRemoteIceCandidate(final IceCandidate candidate);
-    public void onRemoteScreenIceCandidate(final IceCandidate candidate);
+    void onRemoteIceCandidate(final IceCandidate candidate);
+    void onRemoteScreenIceCandidate(final IceCandidate candidate);
 
     /**
      * Callback fired once channel is closed.
      */
-    public void onChannelClose();
-    public void onChannelScreenClose();
+    void onChannelClose();
+    void onChannelScreenClose();
 
     /**
      * Callback fired once channel error happened.
      */
-    public void onChannelError(final String description);
+    void onChannelError(final String description);
 
+    // Chat text events from here
+    void onConversationReady();
 
+    void onAgentMissedChat();
+
+    void endVideoCall();
+
+    void onNoAgentResponse();
+
+    void onMessageCome(MessageData message);
+
+    void onAgentEndConversation();
+
+    void onServiceListResponse(List<Service> services);
   }
 }

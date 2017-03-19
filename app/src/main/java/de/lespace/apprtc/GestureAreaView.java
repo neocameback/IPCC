@@ -1,7 +1,6 @@
 package de.lespace.apprtc;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -9,9 +8,9 @@ import android.graphics.Matrix;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.View;
+import android.widget.FrameLayout;
 
-public class GestureAreaView extends View  {
+public class GestureAreaView extends FrameLayout {
 
 	private GestureDetector gestures;
 	private Matrix translate;

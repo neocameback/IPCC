@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/padding_small"
+    android:orientation="horizontal"
+    android:paddingRight="@dimen/padding_message_outside">
+
+  <ImageView
+      android:id="@+id/item_chat_user_img"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom"
+      android:src="@drawable/ic_supporter"/>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/item_one_message_content_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bubble_supporter"
+        android:minHeight="40dp"
+        android:layout_marginBottom="5dp"
+        android:text="Chúc ngủ ngon"/>
+
+    <TextView
+        android:id="@+id/time_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="00:00"
+        android:gravity="left"/>
+  </LinearLayout>
+
+</LinearLayout>

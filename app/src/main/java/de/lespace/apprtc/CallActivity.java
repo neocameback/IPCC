@@ -10,6 +10,12 @@
 
 package de.lespace.apprtc;
 
+import org.webrtc.EglBase;
+import org.webrtc.RendererCommon;
+import org.webrtc.RendererCommon.ScalingType;
+import org.webrtc.StatsReport;
+import org.webrtc.SurfaceViewRenderer;
+
 import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,21 +23,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
-
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
-
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
-
-import org.webrtc.EglBase;
-import org.webrtc.RendererCommon;
-import org.webrtc.RendererCommon.ScalingType;
-import org.webrtc.StatsReport;
-import org.webrtc.SurfaceViewRenderer;
 
 
 /**
@@ -129,12 +127,12 @@ public class CallActivity extends RTCConnection implements
     // Create UI controls.
     localRender = (SurfaceViewRenderer) findViewById(R.id.local_video_view);
     remoteRender = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
-      screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
+    screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
 
     localRenderLayout = (PercentFrameLayout) findViewById(R.id.local_video_layout);
     remoteRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_video_layout);
 
-      screenRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_screen_layout);
+    screenRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_screen_layout);
 
 
       // Show/hide call control fragment on view click.
@@ -153,9 +151,9 @@ public class CallActivity extends RTCConnection implements
     rootEglBase = EglBase.create();
     localRender.init(rootEglBase.getEglBaseContext(), null);
     remoteRender.init(rootEglBase.getEglBaseContext(), null);
-      screenRender.init(rootEglBase.getEglBaseContext(), null);
+    screenRender.init(rootEglBase.getEglBaseContext(), null);
     localRender.setZOrderMediaOverlay(true);
-      screenRender.setZOrderMediaOverlay(true);
+    screenRender.setZOrderMediaOverlay(true);
     updateVideoView();
 
     setResult(RESULT_CANCELED);
