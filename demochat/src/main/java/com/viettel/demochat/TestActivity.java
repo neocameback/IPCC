@@ -1,8 +1,8 @@
 package com.viettel.demochat;
 
 import com.viettel.ipcclib.chat.ChatActivity;
+import com.viettel.ipcclib.constants.Configs;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -20,7 +20,7 @@ public class TestActivity extends FragmentActivity {
     findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        startActivity(new Intent(getApplicationContext(), ChatActivity.class));
+        ChatActivity.start(TestActivity.this, Configs.ROOM_URL, Configs.DOMAIN_TEST, 28);
       }
     });
   }

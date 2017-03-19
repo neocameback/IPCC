@@ -2,6 +2,8 @@ package com.viettel.ipcclib.videocall;
 
 import com.viettel.ipcclib.R;
 
+import org.webrtc.SurfaceViewRenderer;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -23,11 +25,11 @@ import android.widget.LinearLayout;
 
 public class DraggableService extends Service {
   private LinearLayout mTextureViewll;
-  private AutoFitTextureView mAutoFitTextureView;
+  private SurfaceViewRenderer mAutoFitTextureView;
   // Binder given to clients
   private final IBinder mBinder = new LocalBinder();
 
-  public AutoFitTextureView getTextureView() {
+  public SurfaceViewRenderer getTextureView() {
     return mAutoFitTextureView;
   }
 
@@ -40,7 +42,7 @@ public class DraggableService extends Service {
    * runs in the same process as its clients, we don't need to deal with IPC.
    */
   public class LocalBinder extends Binder {
-    DraggableService getService() {
+    public DraggableService getService() {
       // Return this instance of LocalService so clients can call public methods
       return DraggableService.this;
     }
@@ -56,7 +58,7 @@ public class DraggableService extends Service {
     super.onCreate();
     mTextureViewll = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.small_textureview, null);
 
-    mAutoFitTextureView = (AutoFitTextureView) mTextureViewll.findViewById(R.id.video_call_owner_texture);
+    mAutoFitTextureView = (SurfaceViewRenderer) mTextureViewll.findViewById(R.id.remote_video_view);
 
     window = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
     Display display = window.getDefaultDisplay();

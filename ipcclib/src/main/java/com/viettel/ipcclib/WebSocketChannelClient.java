@@ -109,6 +109,11 @@ public class WebSocketChannelClient {
     return state;
   }
 
+  public void disconnect() {
+    if (ws != null) {
+      ws.disconnect();
+    }
+  }
   public boolean connect(final String wsUrl) {
     Log.i(TAG, "connect called: " + wsUrl);
     checkIfCalledOnValidThread();
@@ -256,6 +261,7 @@ public class WebSocketChannelClient {
 
   public void send(Message message) {
     checkIfCalledOnValidThread();
+    if (ws == null) return;
 
     String msg = GsonWrapper.getGson().toJson(message);
     Log.d(TAG, "WS ACC: " + msg);
@@ -270,6 +276,28 @@ public class WebSocketChannelClient {
       case ERROR:
       case CLOSED:
         Log.e(TAG, "WebSocket send() in error or closed state : " + message);
+        return;
+      case REGISTERED:
+        Log.d(TAG, "C->WSS: " + msg);
+        ws.sendText(msg);
+        break;
+    }
+    return;
+  }
+
+  public void send(String msg) {
+    checkIfCalledOnValidThread();
+
+    switch (state) {
+      case NEW:
+      case CONNECTED:
+        // Store outgoing messages and send them after websocket client
+        // is registered.
+        ws.sendText(msg);
+        return;
+      case ERROR:
+      case CLOSED:
+        Log.e(TAG, "WebSocket send() in error or closed state : " + msg);
         return;
       case REGISTERED:
         Log.d(TAG, "C->WSS: " + msg);

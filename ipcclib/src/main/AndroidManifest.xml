@@ -54,6 +54,12 @@
         android:keepScreenOn="true"
         android:label="@string/app_name"
         android:screenOrientation="fullUser"/>
+    <activity
+        android:name=".videocall.VideoCallActivity"
+        android:configChanges="orientation|screenSize"
+        android:keepScreenOn="true"
+        android:label="@string/app_name"
+        android:screenOrientation="fullUser"/>
 
     <service android:name=".videocall.DraggableService">
     </service>

@@ -5,7 +5,6 @@ import com.viettel.ipcclib.PeerConnectionClient;
 import com.viettel.ipcclib.R;
 import com.viettel.ipcclib.WebSocketRTCClient;
 import com.viettel.ipcclib.chat.ChatActivity;
-import com.viettel.ipcclib.constants.Configs;
 import com.viettel.ipcclib.constants.QuickstartPreferences;
 import com.viettel.ipcclib.model.MessageData;
 import com.viettel.ipcclib.model.Service;
@@ -18,13 +17,13 @@ import org.webrtc.PeerConnection;
 import org.webrtc.SessionDescription;
 import org.webrtc.StatsReport;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -48,12 +47,20 @@ public abstract class WSFragment extends Fragment {
   public boolean iceConnected;
   private BroadcastReceiver bringToFrontBroadcastReceiver;
 
-  private AppRTCClient.RoomConnectionParameters roomConnectionParameters;
-  private WebSocketRTCClient appRtcClient;
+  public static AppRTCClient.RoomConnectionParameters roomConnectionParameters;
+  public static WebSocketRTCClient appRtcClient;
   private long callStartedTimeMs;
 
-  public PeerConnectionClient peerConnectionClient = null;
-  public PeerConnectionClient peerConnectionClient2 = null;
+  public static PeerConnectionClient peerConnectionClient = null;
+  public static PeerConnectionClient peerConnectionClient2 = null;
+
+  public static PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
+  public static AppRTCClient.SignalingParameters signalingParam;
+  protected Activity mContext;
+  protected int serviceId;
+  private String domain;
+  private String endPoint;
+
 
   // Log |msg| and Toast about it.
   protected void logAndToast(String msg) {
@@ -65,11 +72,32 @@ public abstract class WSFragment extends Fragment {
     if (logToast != null) {
       logToast.cancel();
     }
-    logToast = Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT);
-    logToast.show();
+    if (isContextAvailable()) {
+      logToast = Toast.makeText(mContext, msg, Toast.LENGTH_SHORT);
+      logToast.show();
+    }
   }
 
-//  private void initIntent() {
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    mContext = (Activity) context;
+//    new Handler().postDelayed(new Runnable() {
+//      @Override
+//      public void run() {
+//        init();
+//      }
+//    }, 300);
+    init();
+  }
+
+  @Override
+  public void onDetach() {
+    super.onDetach();
+    mContext = null;
+  }
+
+  //  private void initIntent() {
 //    if (validateUrl(Configs.ROOM_URL)) {
 //      Uri uri = Uri.parse(Configs.ROOM_URL);
 //      intent = new Intent(this, ConnectActivity.class);
@@ -101,7 +129,7 @@ public abstract class WSFragment extends Fragment {
 //      return true;
 //    }
 //
-//    new AlertDialog.Builder(getActivity())
+//    new AlertDialog.Builder(mContext)
 //        .setTitle(getText(R.string.invalid_url_title))
 //        .setMessage(getString(R.string.invalid_url_text, url))
 //        .setCancelable(false)
@@ -114,13 +142,13 @@ public abstract class WSFragment extends Fragment {
 //  }
 
   public boolean isContextAvailable() {
-    return getActivity() != null && !getActivity().isFinishing();
+    return mContext != null && (mContext instanceof Activity && !mContext.isFinishing());
   }
 
   // Disconnect from remote resources, dispose of local resources, and exit.
   public void disconnect(boolean sendRemoteHangup) {
     Intent intent = new Intent("finish_CallActivity");
-    getActivity().sendBroadcast(intent);
+    mContext.sendBroadcast(intent);
   }
 
   private void disconnectWithErrorMessage(final String errorMessage) {
@@ -128,7 +156,7 @@ public abstract class WSFragment extends Fragment {
       Log.e(TAG, "Critical error: " + errorMessage);
       disconnect(true);
     } else {
-      new AlertDialog.Builder(getActivity())
+      new AlertDialog.Builder(mContext)
           .setTitle(getText(R.string.channel_error_title))
           .setMessage(errorMessage)
           .setCancelable(false)
@@ -148,7 +176,7 @@ public abstract class WSFragment extends Fragment {
       @Override
       public void onReceive(Context context, Intent intent) {
 
-        Intent intentStart = new Intent(getActivity().getApplicationContext(),
+        Intent intentStart = new Intent(mContext.getApplicationContext(),
             ChatActivity.class);
         // intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -162,7 +190,7 @@ public abstract class WSFragment extends Fragment {
     };
 
     registerBringToFrontReceiver();
-    initWebSocket(Configs.ROOM_URL);
+    initWebSocket(endPoint);
   }
 
   public void initWebSocket(String wsurl) {
@@ -171,9 +199,12 @@ public abstract class WSFragment extends Fragment {
 
     Log.i(TAG, "creating appRtcClient with roomUri:" + wsurl + " from:" + from);
     // Create connection client and connection parameters.
-    appRtcClient = new WebSocketRTCClient(mSignalingEvents, new LooperExecutor());
-    // todo fake
-    appRtcClient.setServiceId(28);
+    if (appRtcClient == null) {
+      appRtcClient = new WebSocketRTCClient(mSignalingEvents, new LooperExecutor());
+      // todo fake
+      appRtcClient.setServiceId(serviceId);
+      appRtcClient.setDomain(domain);
+    }
 
     connectToWebsocket();
   }
@@ -183,23 +214,25 @@ public abstract class WSFragment extends Fragment {
       Log.e(TAG, "AppRTC client is not allocated for a call.");
       return;
     }
+
+    appRtcClient.disconnect();
     callStartedTimeMs = System.currentTimeMillis();
 
     // Start room connection.
     appRtcClient.connectToWebsocket(roomConnectionParameters);
   }
 
-  private void connectToUser(int runTimeMs) {
-    initTurnServer();
-    appRtcClient.initUser();
-    String to = "112";
-    roomConnectionParameters.initiator = true;
-    roomConnectionParameters.to = to;
-  }
+//  private void connectToUser(int runTimeMs) {
+//    initTurnServer();
+//    appRtcClient.initUser();
+//    String to = "112";
+//    roomConnectionParameters.initiator = true;
+//    roomConnectionParameters.to = to;
+//  }
 
   private void registerBringToFrontReceiver() {
     if (!isBringToFrontReceiverRegistered) {
-      LocalBroadcastManager.getInstance(getActivity()).registerReceiver(bringToFrontBroadcastReceiver,
+      LocalBroadcastManager.getInstance(mContext).registerReceiver(bringToFrontBroadcastReceiver,
           new IntentFilter(QuickstartPreferences.INCOMING_CALL));
       isBringToFrontReceiverRegistered = true;
     }
@@ -266,6 +299,7 @@ public abstract class WSFragment extends Fragment {
   }
 
   protected void sendTypingStatus(boolean typing) {
+    if (appRtcClient != null)
     appRtcClient.sendTypingStatus(typing);
   }
 
@@ -316,7 +350,7 @@ public abstract class WSFragment extends Fragment {
     @Override
     public void onLocalDescription(final SessionDescription sdp) {
       final long delta = System.currentTimeMillis() - callStartedTimeMs;
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           if (appRtcClient != null) {
@@ -334,7 +368,7 @@ public abstract class WSFragment extends Fragment {
 
     @Override
     public void onIceCandidate(final IceCandidate candidate) {
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           if (appRtcClient != null) {
@@ -350,7 +384,7 @@ public abstract class WSFragment extends Fragment {
 
     @Override
     public void onIceDisconnected() {
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           logAndToast("ICE disconnected");
@@ -376,7 +410,7 @@ public abstract class WSFragment extends Fragment {
     }
 
     public void reportError(final String description) {
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           if (!isError) {
@@ -387,6 +421,11 @@ public abstract class WSFragment extends Fragment {
       });
     }
   };
+
+
+  public AppRTCClient.SignalingEvents getSignalingEvents() {
+    return mSignalingEvents;
+  }
 
   // Response
   private AppRTCClient.SignalingEvents mSignalingEvents = new AppRTCClient.SignalingEvents() {
@@ -402,19 +441,19 @@ public abstract class WSFragment extends Fragment {
 
     @Override
     public void onReciveCall() {
-      Intent newIntent = new Intent(getActivity(), ChatActivity.class);
-      newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-      newIntent.putExtra("keep", true);
-      newIntent.putExtras(getIntent());
-      startActivityForResult(newIntent, CONNECTION_REQUEST);
+//      Intent newIntent = new Intent(mContext, CallActivity.class);
+//      newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//      newIntent.putExtra("keep", true);
+//      newIntent.putExtras(getIntent());
+//      startActivityForResult(newIntent, CONNECTION_REQUEST);
     }
 
-    public Intent getIntent() {
-      Uri uri = Uri.parse(Configs.ROOM_URL);
-      Intent intent = new Intent(getActivity(), ChatActivity.class);
-      intent.setData(uri);
-      return intent;
-    }
+//    public Intent getIntent() {
+//      Uri uri = Uri.parse(endPoint);
+//      Intent intent = new Intent(mContext, CallActivity.class);
+//      intent.setData(uri);
+//      return intent;
+//    }
 
     @Override
     public void onIncomingCall(String from) {
@@ -453,7 +492,9 @@ public abstract class WSFragment extends Fragment {
     @Override
     public void onRemoteDescription(final SessionDescription sdp) {
       final long delta = System.currentTimeMillis() - callStartedTimeMs;
-      getActivity().runOnUiThread(new Runnable() {
+      if (!isContextAvailable()) return;
+
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           if (peerConnectionClient == null) {
@@ -469,7 +510,7 @@ public abstract class WSFragment extends Fragment {
     @Override
     public void onRemoteScreenDescription(final SessionDescription sdp) {
       final long delta = System.currentTimeMillis() - callStartedTimeMs;
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           if (peerConnectionClient2 == null) {
@@ -484,7 +525,7 @@ public abstract class WSFragment extends Fragment {
 
     @Override
     public void onRemoteIceCandidate(final IceCandidate candidate) {
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           if (peerConnectionClient == null) {
@@ -499,7 +540,7 @@ public abstract class WSFragment extends Fragment {
 
     @Override
     public void onRemoteScreenIceCandidate(final IceCandidate candidate) {
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           if (peerConnectionClient2 == null) {
@@ -514,7 +555,7 @@ public abstract class WSFragment extends Fragment {
 
     @Override
     public void onChannelClose() {
-      getActivity().runOnUiThread(new Runnable() {
+      mContext.runOnUiThread(new Runnable() {
         @Override
         public void run() {
           logAndToast("stopCommunication from remotereceived; finishing CallActivity");
@@ -526,12 +567,12 @@ public abstract class WSFragment extends Fragment {
     @Override
     public void onChannelScreenClose() {
       Intent intent = new Intent("finish_screensharing");
-      getActivity().sendBroadcast(intent);
+      mContext.sendBroadcast(intent);
     }
 
     @Override
     public void onChannelError(String description) {
-
+      onWSChannelError(description);
     }
 
     @Override
@@ -585,6 +626,8 @@ public abstract class WSFragment extends Fragment {
     }
   };
 
+  protected abstract void onWSChannelError(String description);
+
   protected abstract void onWSAgentJoinConversation(String fullName);
 
   protected abstract void onWSAgentEndConversation(String agentName);
@@ -597,4 +640,18 @@ public abstract class WSFragment extends Fragment {
 
   protected abstract void onWSConnected();
 
+  public WSFragment setServiceId(int serviceId) {
+    this.serviceId = serviceId;
+    return this;
+  }
+
+  public WSFragment setDomain(String domain) {
+    this.domain = domain;
+    return this;
+  }
+
+  public WSFragment setEndPoint(String endPoint) {
+    this.endPoint = endPoint;
+    return this;
+  }
 }

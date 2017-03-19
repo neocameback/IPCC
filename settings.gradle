@@ -1,1 +1,1 @@
-include ':ipcclib', ':demochat'
+include ':ipcclib', ':demochat', ':app'

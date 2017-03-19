@@ -10,11 +10,13 @@
 
 package com.viettel.ipcclib;
 
+import com.viettel.ipcclib.model.MessageData;
+
 import org.webrtc.RendererCommon.ScalingType;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +27,7 @@ import android.widget.TextView;
 /**
  * Fragment for call control.
  */
-public class CallFragment extends Fragment  {
+public class CallFragment extends Fragment {
 
   private View controlView;
 
@@ -40,6 +42,34 @@ public class CallFragment extends Fragment  {
   private ScalingType scalingType;
   private boolean videoCallEnabled = true;
 
+
+  protected void onWSAgentJoinConversation(String fullName) {
+
+  }
+
+  protected void onWSAgentEndConversation(String agentName) {
+
+  }
+
+  protected void onWSNotFoundAgentAvailable() {
+
+  }
+
+  protected void onWSMessageReceived(MessageData message) {
+
+  }
+
+  protected void onWSAgentTyping(String name, boolean typing) {
+
+  }
+
+  protected void onWSConnected() {
+
+  }
+
+  protected void onWSChannelError(String description) {
+
+  }
 
   /**
    * Call control interface for container activity.

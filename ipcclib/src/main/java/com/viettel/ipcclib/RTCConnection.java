@@ -1,11 +1,13 @@
 package com.viettel.ipcclib;
 
+import com.viettel.ipcclib.common.WSFragment;
+import com.viettel.ipcclib.util.LooperExecutor;
+
 import org.webrtc.IceCandidate;
 import org.webrtc.RendererCommon;
 import org.webrtc.SessionDescription;
 import org.webrtc.StatsReport;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -14,14 +16,20 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import static com.viettel.ipcclib.common.WSFragment.appRtcClient;
+import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient;
+import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient2;
 
-public abstract class RTCConnection extends Activity implements
+
+public abstract class RTCConnection extends FragmentActivity implements
         PeerConnectionClient.PeerConnectionEvents,
         WebSocketChannelClient.WebSocketChannelEvents {
 
@@ -48,14 +56,13 @@ public abstract class RTCConnection extends Activity implements
     public static final String EXTRA_RUNTIME = "de.lespace.mscwebrtc.RUNTIME";
     public static final int CONNECTION_REQUEST = 1;
 
-    public static PeerConnectionClient peerConnectionClient = null;
-    public static PeerConnectionClient peerConnectionClient2 = null;
+//    public static PeerConnectionClient peerConnectionClient = null;
+//    public static PeerConnectionClient peerConnectionClient2 = null;
 
 
     public String from = "";
     public Toast logToast;
     public long callStartedTimeMs = 0;
-    public static AppRTCClient appRtcClient;
     private static final String TAG = "RTCConnection";
     public boolean iceConnected;
     public boolean isError;
@@ -85,13 +92,30 @@ public abstract class RTCConnection extends Activity implements
     private static final int LOCAL_WIDTH_CONNECTED = 25;
     private static final int LOCAL_HEIGHT_CONNECTED = 25;
 
-    public static AppRTCClient.RoomConnectionParameters roomConnectionParameters;
-    public static PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
-    public static AppRTCClient.SignalingParameters signalingParam;
+//    public static AppRTCClient.RoomConnectionParameters roomConnectionParameters;
+//    public static PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
+//    public static AppRTCClient.SignalingParameters signalingParam;
 
     public RTCConnection(){
 
     }
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (appRtcClient == null) {
+            appRtcClient = new WebSocketRTCClient(getSignalingEvents(), new LooperExecutor());
+        }
+    }
+
+    protected abstract AppRTCClient.SignalingEvents getSignalingEvents();
+
     // Log |msg| and Toast about it.
     public void logAndToast(String msg) {
         Log.d(TAG, msg);
@@ -112,7 +136,7 @@ public abstract class RTCConnection extends Activity implements
 
     private void onConnectedToRoomInternal(final AppRTCClient.SignalingParameters params) {
         final long delta = System.currentTimeMillis() - callStartedTimeMs;
-        signalingParam = params;
+        WSFragment.signalingParam = params;
     }
 
     public void onChannelError(final String description){
@@ -138,16 +162,20 @@ public abstract class RTCConnection extends Activity implements
         }
     }
 
-    public void connectToWebsocket() {
-        if (appRtcClient == null) {
-            Log.e(TAG, "AppRTC client is not allocated for a call.");
-            return;
-        }
-        callStartedTimeMs = System.currentTimeMillis();
-
-        // Start room connection.
-        appRtcClient.connectToWebsocket(roomConnectionParameters);
+    protected void makeCall() {
+        appRtcClient.makeCall();
     }
+
+//    public void connectToWebsocket() {
+//        if (appRtcClient == null) {
+//            Log.e(TAG, "AppRTC client is not allocated for a call.");
+//            return;
+//        }
+//        callStartedTimeMs = System.currentTimeMillis();
+//
+//        // Start room connection.
+//        appRtcClient.connectToWebsocket(WSFragment.roomConnectionParameters);
+//    }
 
     // Disconnect from remote resources, dispose of local resources, and exit.
     public void disconnect(boolean sendRemoteHangup) {

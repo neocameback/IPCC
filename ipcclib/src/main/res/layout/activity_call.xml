@@ -28,6 +28,7 @@
 
     <com.viettel.ipcclib.PercentFrameLayout
         android:id="@+id/local_video_layout"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <org.webrtc.SurfaceViewRenderer

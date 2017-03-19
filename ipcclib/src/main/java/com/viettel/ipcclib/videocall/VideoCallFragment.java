@@ -1,6 +1,11 @@
 package com.viettel.ipcclib.videocall;
 
+import com.viettel.ipcclib.AppRTCClient;
+import com.viettel.ipcclib.PeerConnectionClient;
 import com.viettel.ipcclib.R;
+import com.viettel.ipcclib.constants.Configs;
+
+import org.webrtc.SurfaceViewRenderer;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,8 +16,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -34,6 +39,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
@@ -60,6 +66,10 @@ import java.util.concurrent.TimeUnit;
 
 import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
+import static com.viettel.ipcclib.RTCConnection.isWSSUrl;
+import static com.viettel.ipcclib.RTCConnection.isWSUrl;
+import static com.viettel.ipcclib.common.WSFragment.peerConnectionParameters;
+import static com.viettel.ipcclib.common.WSFragment.roomConnectionParameters;
 
 ;
 
@@ -142,7 +152,7 @@ public class VideoCallFragment extends Fragment
   /**
    * An {@link AutoFitTextureView} for camera preview.
    */
-  private AutoFitTextureView mTextureView;
+  private SurfaceViewRenderer mTextureView;
 
   /**
    * A {@link CameraCaptureSession } for camera preview.
@@ -278,7 +288,7 @@ public class VideoCallFragment extends Fragment
       // This method is called when the camera is opened.  We start camera preview here.
       mCameraOpenCloseLock.release();
       mCameraDevice = cameraDevice;
-      createCameraPreviewSession();
+//      createCameraPreviewSession();
     }
 
     @Override
@@ -501,11 +511,11 @@ public class VideoCallFragment extends Fragment
   }
 
   public void reopenCamera() {
-    if (mTextureView.isAvailable()) {
-      openCamera(mTextureView.getWidth(), mTextureView.getHeight());
-    } else {
-      mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
-    }
+//    if (mTextureView.isAvailable()) {
+//      openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+//    } else {
+//      mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+//    }
   }
 
   /**
@@ -595,13 +605,13 @@ public class VideoCallFragment extends Fragment
 
       // We fit the aspect ratio of TextureView to the size of preview we picked.
       int orientation = getResources().getConfiguration().orientation;
-      if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        mTextureView.setAspectRatio(
-            mPreviewSize.getWidth(), mPreviewSize.getHeight());
-      } else {
-        mTextureView.setAspectRatio(
-            mPreviewSize.getHeight(), mPreviewSize.getWidth());
-      }
+//      if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//        mTextureView.setAspectRatio(
+//            mPreviewSize.getWidth(), mPreviewSize.getHeight());
+//      } else {
+//        mTextureView.setAspectRatio(
+//            mPreviewSize.getHeight(), mPreviewSize.getWidth());
+//      }
 
         /*
     Whether the current camera device supports Flash or not.
@@ -675,9 +685,11 @@ public class VideoCallFragment extends Fragment
     }
   }
 
-  /**
+
+   /**
    * Creates a new {@link CameraCaptureSession} for camera preview.
    */
+  /**
   private void createCameraPreviewSession() {
     try {
       SurfaceTexture texture = mTextureView.getSurfaceTexture();
@@ -732,6 +744,7 @@ public class VideoCallFragment extends Fragment
       e.printStackTrace();
     }
   }
+  */
 
   /**
    * Configures the necessary {@link Matrix} transformation to `mTextureView`.
@@ -763,7 +776,7 @@ public class VideoCallFragment extends Fragment
     } else if (Surface.ROTATION_180 == rotation) {
       matrix.postRotate(180, centerX, centerY);
     }
-    mTextureView.setTransform(matrix);
+//    mTextureView.setTransform(matrix);
   }
 
   /**
@@ -885,5 +898,205 @@ public class VideoCallFragment extends Fragment
 //      }
     }
     super.onActivityResult(requestCode, resultCode, data);
+  }
+
+
+  /// TODO video call
+  private List<String> missingPermissions;
+  private Intent intent = null;
+// List of mandatory application permissions.
+  private static final String[] MANDATORY_PERMISSIONS = {
+      "android.permission.MODIFY_AUDIO_SETTINGS",
+      "android.permission.RECORD_AUDIO",
+      "android.permission.CAMERA",
+      "android.permission.INTERNET"
+  };
+
+  private void initWS() {
+    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+    String keyprefFrom = getString(R.string.pref_from_key);
+    String keyprefVideoCallEnabled = getString(R.string.pref_videocall_key);
+    String keyprefResolution = getString(R.string.pref_resolution_key);
+    String keyprefFps = getString(R.string.pref_fps_key);
+    String keyprefCaptureQualitySlider = getString(R.string.pref_capturequalityslider_key);
+    String keyprefVideoBitrateType = getString(R.string.pref_startvideobitrate_key);
+    String keyprefVideoBitrateValue = getString(R.string.pref_startvideobitratevalue_key);
+    String keyprefVideoCodec = getString(R.string.pref_videocodec_key);
+    String keyprefHwCodecAcceleration = getString(R.string.pref_hwcodec_key);
+    String keyprefCaptureToTexture = getString(R.string.pref_capturetotexture_key);
+    String keyprefAudioBitrateType = getString(R.string.pref_startaudiobitrate_key);
+    String keyprefAudioBitrateValue = getString(R.string.pref_startaudiobitratevalue_key);
+    String keyprefAudioCodec = getString(R.string.pref_audiocodec_key);
+    String keyprefNoAudioProcessingPipeline = getString(R.string.pref_noaudioprocessing_key);
+    String keyprefAecDump = getString(R.string.pref_aecdump_key);
+    String keyprefOpenSLES = getString(R.string.pref_opensles_key);
+    String keyprefDisplayHud = getString(R.string.pref_displayhud_key);
+    String keyprefTracing = getString(R.string.pref_tracing_key);
+    String keyprefRoomServerUrl = getString(R.string.pref_room_server_url_key);
+    String keyprefRoom = getString(R.string.pref_room_key);
+    String keyprefRoomList = getString(R.string.pref_room_list_key);
+    String from = sharedPref.getString(keyprefFrom, getString(R.string.pref_from_default));
+    String roomUrl = sharedPref.getString(
+        keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
+    roomUrl="wss://192.168.0.117:8898";
+    // Video call enabled flag.
+    boolean videoCallEnabled = sharedPref.getBoolean(keyprefVideoCallEnabled,
+        Boolean.valueOf(getString(R.string.pref_videocall_default)));
+
+    // Get default codecs.
+    String videoCodec = sharedPref.getString(keyprefVideoCodec, getString(R.string.pref_videocodec_default));
+    String audioCodec = sharedPref.getString(keyprefAudioCodec, getString(R.string.pref_audiocodec_default));
+
+    // Check HW codec flag.
+    boolean hwCodec = sharedPref.getBoolean(keyprefHwCodecAcceleration, Boolean.valueOf(getString(R.string.pref_hwcodec_default)));
+
+    // Check Capture to texture.
+    boolean captureToTexture = sharedPref.getBoolean(keyprefCaptureToTexture, Boolean.valueOf(getString(R.string.pref_capturetotexture_default)));
+
+    // Check Disable Audio Processing flag.
+    boolean noAudioProcessing = sharedPref.getBoolean(keyprefNoAudioProcessingPipeline, Boolean.valueOf(getString(R.string.pref_noaudioprocessing_default)));
+
+    // Check Disable Audio Processing flag.
+    boolean aecDump = sharedPref.getBoolean(keyprefAecDump, Boolean.valueOf(getString(R.string.pref_aecdump_default)));
+
+    // Check OpenSL ES enabled flag.
+    boolean useOpenSLES = sharedPref.getBoolean(
+        keyprefOpenSLES,
+        Boolean.valueOf(getString(R.string.pref_opensles_default)));
+
+    // Check for mandatory permissions.
+    int counter = 0;
+    missingPermissions = new ArrayList<>();
+
+    for (String permission : MANDATORY_PERMISSIONS) {
+      if (getActivity().checkCallingOrSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+        counter++;
+        missingPermissions.add(permission);
+      }
+    }
+    requestPermission();
+
+    // Get video resolution from settings.
+    int videoWidth = 0;
+    int videoHeight = 0;
+    String resolution = sharedPref.getString(keyprefResolution,
+        getString(R.string.pref_resolution_default));
+    String[] dimensions = resolution.split("[ x]+");
+    if (dimensions.length == 2) {
+      try {
+        videoWidth = Integer.parseInt(dimensions[0]);
+        videoHeight = Integer.parseInt(dimensions[1]);
+      } catch (NumberFormatException e) {
+        videoWidth = 0;
+        videoHeight = 0;
+        Log.e(TAG, "Wrong video resolution setting: " + resolution);
+      }
+    }
+
+    // Get camera fps from settings.
+    int cameraFps = 0;
+    String fps = sharedPref.getString(keyprefFps,
+        getString(R.string.pref_fps_default));
+    String[] fpsValues = fps.split("[ x]+");
+    if (fpsValues.length == 2) {
+      try {
+        cameraFps = Integer.parseInt(fpsValues[0]);
+      } catch (NumberFormatException e) {
+        Log.e(TAG, "Wrong camera fps setting: " + fps);
+      }
+    }
+
+    // Check capture quality slider flag.
+    boolean captureQualitySlider = sharedPref.getBoolean(keyprefCaptureQualitySlider,
+        Boolean.valueOf(getString(R.string.pref_capturequalityslider_default)));
+
+    // Get video and audio start bitrate.
+    int videoStartBitrate = 0;
+    String bitrateTypeDefault = getString(
+        R.string.pref_startvideobitrate_default);
+    String bitrateType = sharedPref.getString(
+        keyprefVideoBitrateType, bitrateTypeDefault);
+    if (!bitrateType.equals(bitrateTypeDefault)) {
+      String bitrateValue = sharedPref.getString(keyprefVideoBitrateValue, getString(R.string.pref_startvideobitratevalue_default));
+      videoStartBitrate = Integer.parseInt(bitrateValue);
+    }
+    int audioStartBitrate = 0;
+    bitrateTypeDefault = getString(R.string.pref_startaudiobitrate_default);
+    bitrateType = sharedPref.getString(
+        keyprefAudioBitrateType, bitrateTypeDefault);
+    if (!bitrateType.equals(bitrateTypeDefault)) {
+      String bitrateValue = sharedPref.getString(keyprefAudioBitrateValue,
+          getString(R.string.pref_startaudiobitratevalue_default));
+      audioStartBitrate = Integer.parseInt(bitrateValue);
+    }
+
+    // Check statistics display option.
+    boolean displayHud = sharedPref.getBoolean(keyprefDisplayHud, Boolean.valueOf(getString(R.string.pref_displayhud_default)));
+
+    boolean tracing = sharedPref.getBoolean(keyprefTracing, Boolean.valueOf(getString(R.string.pref_tracing_default)));
+
+//    Log.d(TAG, "Connecting from " + from + " at URL " + roomUrl);
+//
+//    if (validateUrl(roomUrl)) {
+//      Uri uri = Uri.parse(roomUrl);
+//      intent = new Intent(this, ConnectActivity.class);
+//      intent.setData(uri);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, videoCallEnabled);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_WIDTH, videoWidth);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_HEIGHT, videoHeight);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_FPS, cameraFps);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, captureQualitySlider);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_BITRATE, videoStartBitrate);
+//      intent.putExtra(CallActivity.EXTRA_VIDEOCODEC, videoCodec);
+//      intent.putExtra(CallActivity.EXTRA_HWCODEC_ENABLED, hwCodec);
+//      intent.putExtra(CallActivity.EXTRA_CAPTURETOTEXTURE_ENABLED, captureToTexture);
+//      intent.putExtra(CallActivity.EXTRA_NOAUDIOPROCESSING_ENABLED, noAudioProcessing);
+//      intent.putExtra(CallActivity.EXTRA_AECDUMP_ENABLED, aecDump);
+//      intent.putExtra(CallActivity.EXTRA_OPENSLES_ENABLED, useOpenSLES);
+//      intent.putExtra(CallActivity.EXTRA_AUDIO_BITRATE, audioStartBitrate);
+//      intent.putExtra(CallActivity.EXTRA_AUDIOCODEC, audioCodec);
+//      intent.putExtra(CallActivity.EXTRA_DISPLAY_HUD, displayHud);
+//      intent.putExtra(CallActivity.EXTRA_TRACING, tracing);
+//      intent.putExtra(CallActivity.EXTRA_CMDLINE, commandLineRun);
+//      intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
+//    }
+
+    if (peerConnectionParameters == null) {
+      peerConnectionParameters = new PeerConnectionClient.PeerConnectionParameters(
+          videoCallEnabled,
+          tracing,
+          videoWidth, videoHeight, cameraFps, videoStartBitrate, videoCodec, hwCodec,
+          captureToTexture, audioStartBitrate, audioCodec, noAudioProcessing,
+          aecDump, useOpenSLES);
+    }
+
+    if (roomConnectionParameters == null) {
+      roomConnectionParameters = new AppRTCClient.RoomConnectionParameters(Configs.ROOM_URL, from, false);
+    }
+  }
+
+  public boolean validateUrl(String url) {
+    //if (URLUtil.isHttpsUrl(url) || URLUtil.isHttpUrl(url)) {
+    if (isWSUrl(url) || isWSSUrl(url)) {
+      return true;
+    }
+
+    new AlertDialog.Builder(getActivity())
+        .setTitle(getText(R.string.invalid_url_title))
+        .setMessage(getString(R.string.invalid_url_text, url))
+        .setCancelable(false)
+        .setNeutralButton(R.string.ok, new DialogInterface.OnClickListener() {
+          public void onClick(DialogInterface dialog, int id) {
+            dialog.cancel();
+          }
+        }).create().show();
+    return false;
+  }
+
+  //http://stackoverflow.com/questions/35484767/activitycompat-requestpermissions-not-showing-dialog-box
+  //https://developer.android.com/training/permissions/requesting.html
+  private void requestPermission() {
+    if (missingPermissions.size() > 0)
+      requestPermissions(new String[]{missingPermissions.get(0)}, missingPermissions.size());
   }
 }

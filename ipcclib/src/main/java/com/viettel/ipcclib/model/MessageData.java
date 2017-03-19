@@ -102,7 +102,7 @@ public class MessageData {
   private String fileUrl;
 
   @SerializedName("candidate")
-  private CandidateJ candidate;
+  private String candidate;
 
   @SerializedName("sdpAnswer")
   private String sdpAnswer;
@@ -398,11 +398,11 @@ public class MessageData {
     return this;
   }
 
-  public CandidateJ getCandidate() {
+  public String getCandidate() {
     return candidate;
   }
 
-  public MessageData setCandidate(CandidateJ candidate) {
+  public MessageData setCandidate(String candidate) {
     this.candidate = candidate;
     return this;
   }
