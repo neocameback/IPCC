@@ -14,7 +14,6 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -315,7 +314,6 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 
   private static final int REQUEST_CAMERA_PERMISSION = 1;
   private static final int CODE_DRAW_OVER_OTHER_APP_PERMISSION = 2084;
-  private List<String> missingPermissions = new ArrayList<>();
 
   // List of mandatory application permissions.
   private static final String[] MANDATORY_PERMISSIONS = {
@@ -326,7 +324,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   };
 
   private void checkPermissions() {
-
+    List<String> missingPermissions = new ArrayList<>();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getActivity())) {
 
 
@@ -345,18 +343,18 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 
       if (missingPermissions.isEmpty()) {
         startActivity(new Intent(mContext, CallActivity.class));
-
       } else {
-        requestPermission();
+        requestPermission(missingPermissions);
       }
     }
   }
 
   //http://stackoverflow.com/questions/35484767/activitycompat-requestpermissions-not-showing-dialog-box
   //https://developer.android.com/training/permissions/requesting.html
-  private void requestPermission() {
+  private void requestPermission(List<String> missingPermissions) {
+    String[] permissions = missingPermissions.toArray(new String[missingPermissions.size()]);
     if (missingPermissions.size() > 0)
-      ActivityCompat.requestPermissions(getActivity(), new String[]{missingPermissions.get(0)}, missingPermissions.size());
+      this.requestPermissions(permissions, REQUEST_CAMERA_PERMISSION);
   }
 
   @Override

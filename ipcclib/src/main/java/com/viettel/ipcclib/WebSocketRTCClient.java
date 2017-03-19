@@ -600,7 +600,8 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
 //        WebSocketRTCClient.jsonPut(json, "data", data);
 //        WebSocketRTCClient.jsonPut(json, "service", 113);
 //        wsClient.send(json.toString());
-        wsClient.send(message);
+        if (wsClient != null)
+          wsClient.send(message);
       }
     });
 

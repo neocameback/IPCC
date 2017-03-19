@@ -25,7 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -596,12 +595,12 @@ public class CallActivity extends RTCConnection implements
     String keyprefRoom = getString(R.string.pref_room_key);
     String keyprefRoomList = getString(R.string.pref_room_list_key);
     String from = sharedPref.getString(keyprefFrom, getString(R.string.pref_from_default));
-    String roomUrl = sharedPref.getString(
-        keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
-    roomUrl = "wss://192.168.0.117:8898";
+//    String roomUrl = sharedPref.getString(
+//        keyprefRoomServerUrl, getString(R.string.pref_room_server_url_default));
+//    roomUrl = "wss://192.168.0.117:8898";
     // Video call enabled flag.
     boolean videoCallEnabled = sharedPref.getBoolean(keyprefVideoCallEnabled,
-        Boolean.valueOf(getString(R.string.pref_videocall_default)));
+         Boolean.valueOf(getString(R.string.pref_videocall_default)));
 
     // Get default codecs.
     String videoCodec = sharedPref.getString(keyprefVideoCodec, getString(R.string.pref_videocodec_default));
@@ -627,7 +626,7 @@ public class CallActivity extends RTCConnection implements
     // Get video resolution from settings.
     int videoWidth = 0;
     int videoHeight = 0;
-    String resolution = sharedPref.getString(keyprefResolution,
+     String resolution = sharedPref.getString(keyprefResolution,
         getString(R.string.pref_resolution_default));
     String[] dimensions = resolution.split("[ x]+");
     if (dimensions.length == 2) {
@@ -683,31 +682,31 @@ public class CallActivity extends RTCConnection implements
 
     boolean tracing = sharedPref.getBoolean(keyprefTracing, Boolean.valueOf(getString(R.string.pref_tracing_default)));
 
-    Log.d(TAG, "Connecting from " + from + " at URL " + roomUrl);
+//    Log.d(TAG, "Connecting from " + from + " at URL " + roomUrl);
 
-    if (validateUrl(roomUrl)) {
-      Uri uri = Uri.parse(roomUrl);
-      intent = new Intent(this, CallActivity.class);
-      intent.setData(uri);
-      intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, videoCallEnabled);
-      intent.putExtra(CallActivity.EXTRA_VIDEO_WIDTH, videoWidth);
-      intent.putExtra(CallActivity.EXTRA_VIDEO_HEIGHT, videoHeight);
-      intent.putExtra(CallActivity.EXTRA_VIDEO_FPS, cameraFps);
-      intent.putExtra(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, captureQualitySlider);
-      intent.putExtra(CallActivity.EXTRA_VIDEO_BITRATE, videoStartBitrate);
-      intent.putExtra(CallActivity.EXTRA_VIDEOCODEC, videoCodec);
-      intent.putExtra(CallActivity.EXTRA_HWCODEC_ENABLED, hwCodec);
-      intent.putExtra(CallActivity.EXTRA_CAPTURETOTEXTURE_ENABLED, captureToTexture);
-      intent.putExtra(CallActivity.EXTRA_NOAUDIOPROCESSING_ENABLED, noAudioProcessing);
-      intent.putExtra(CallActivity.EXTRA_AECDUMP_ENABLED, aecDump);
-      intent.putExtra(CallActivity.EXTRA_OPENSLES_ENABLED, useOpenSLES);
-      intent.putExtra(CallActivity.EXTRA_AUDIO_BITRATE, audioStartBitrate);
-      intent.putExtra(CallActivity.EXTRA_AUDIOCODEC, audioCodec);
-      intent.putExtra(CallActivity.EXTRA_DISPLAY_HUD, displayHud);
-      intent.putExtra(CallActivity.EXTRA_TRACING, tracing);
-      intent.putExtra(CallActivity.EXTRA_CMDLINE, commandLineRun);
-      intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
-    }
+//    if (validateUrl(roomUrl)) {
+//      Uri uri = Uri.parse(roomUrl);
+//      intent = new Intent(this, CallActivity.class);
+//      intent.setData(uri);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_CALL, videoCallEnabled);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_WIDTH, videoWidth);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_HEIGHT, videoHeight);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_FPS, cameraFps);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, captureQualitySlider);
+//      intent.putExtra(CallActivity.EXTRA_VIDEO_BITRATE, videoStartBitrate);
+//      intent.putExtra(CallActivity.EXTRA_VIDEOCODEC, videoCodec);
+//      intent.putExtra(CallActivity.EXTRA_HWCODEC_ENABLED, hwCodec);
+//      intent.putExtra(CallActivity.EXTRA_CAPTURETOTEXTURE_ENABLED, captureToTexture);
+//      intent.putExtra(CallActivity.EXTRA_NOAUDIOPROCESSING_ENABLED, noAudioProcessing);
+//      intent.putExtra(CallActivity.EXTRA_AECDUMP_ENABLED, aecDump);
+//      intent.putExtra(CallActivity.EXTRA_OPENSLES_ENABLED, useOpenSLES);
+//      intent.putExtra(CallActivity.EXTRA_AUDIO_BITRATE, audioStartBitrate);
+//      intent.putExtra(CallActivity.EXTRA_AUDIOCODEC, audioCodec);
+//      intent.putExtra(CallActivity.EXTRA_DISPLAY_HUD, displayHud);
+//      intent.putExtra(CallActivity.EXTRA_TRACING, tracing);
+//      intent.putExtra(CallActivity.EXTRA_CMDLINE, commandLineRun);
+//      intent.putExtra(CallActivity.EXTRA_RUNTIME, runTimeMs);
+//    }
 
     // Check for mandatory permissions.
     peerConnectionParameters = new PeerConnectionClient.PeerConnectionParameters(
