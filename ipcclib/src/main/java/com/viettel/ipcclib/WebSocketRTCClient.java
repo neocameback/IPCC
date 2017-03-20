@@ -919,7 +919,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         "                           \"username\": \"viettel\",\n" +
         "                           \"password\": \"123456aA\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"turn:203.190.170.131:49352\"\n" +
+        "                                    \"turn:10.60.96.56:8478\"\n" +
         "                                    ]\n" +
         "                           }\n" +
         "                           ]\n" +

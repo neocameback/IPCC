@@ -20,7 +20,7 @@ public class TestActivity extends FragmentActivity {
     findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        ChatActivity.start(TestActivity.this, Configs.ROOM_URL, Configs.DOMAIN_TEST, 102);
+        ChatActivity.start(TestActivity.this, Configs.ROOM_URL, Configs.DOMAIN_TEST, 28);
       }
     });
   }

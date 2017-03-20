@@ -110,8 +110,8 @@ public class CallActivity extends RTCConnection implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    Thread.setDefaultUncaughtExceptionHandler(
-        new UnhandledExceptionHandler(this));
+//    Thread.setDefaultUncaughtExceptionHandler(
+//        new UnhandledExceptionHandler(this));
 
     // Set window styles for fullscreen-window size. Needs to be done before
     // adding content.
@@ -143,8 +143,11 @@ public class CallActivity extends RTCConnection implements
 
     // Create UI controls.
 //    localRender = (SurfaceViewRenderer) findViewById(R.id.local_video_view);
-    remoteRender = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
-    screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
+    if (remoteRender == null) {
+      remoteRender = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
+    }
+    if (screenRender == null)
+      screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
 
 //    localRenderLayout = (PercentFrameLayout) findViewById(R.id.local_video_layout);
     remoteRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_video_layout);
@@ -319,16 +322,16 @@ public class CallActivity extends RTCConnection implements
   protected void onDestroy() {
 
 //    disconnect(sendDisconnectToPeer);
-    if (logToast != null) {
-      logToast.cancel();
-    }
-    activityRunning = false;
-
-
-    unregisterReceiver(broadcast_reciever);
-    broadcastIsRegistered = false;
-
-    rootEglBase.release();
+//    if (logToast != null) {
+//      logToast.cancel();
+//    }
+//    activityRunning = false;
+//
+//
+//    unregisterReceiver(broadcast_reciever);
+//    broadcastIsRegistered = false;
+//
+//    rootEglBase.release();
     super.onDestroy();
 
   }
@@ -570,18 +573,18 @@ public class CallActivity extends RTCConnection implements
       peerConnectionClient.createOffer();
       appRtcClient.makeCall();
     } else {
-      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
-      initPeerConnectionParameters();
-      peerConnectionClient = PeerConnectionClient.getInstance(true);
-      peerConnectionClient.createPeerConnectionFactory(
-          CallActivity.this, peerConnectionParameters, CallActivity.this);
-
-      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-          mDragSerfaceView, remoteRender, screenRender,
-          roomConnectionParameters.initiator);
-      logAndToast("Creating OFFER...");
-      peerConnectionClient.createOffer();
-      peerConnectionClient.startVideoSource();
+//      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+//      initPeerConnectionParameters();
+//      peerConnectionClient = PeerConnectionClient.getInstance(true);
+//      peerConnectionClient.createPeerConnectionFactory(
+//          CallActivity.this, peerConnectionParameters, CallActivity.this);
+//
+//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+//          mDragSerfaceView, remoteRender, screenRender,
+//          roomConnectionParameters.initiator);
+//      logAndToast("Creating OFFER...");
+//      peerConnectionClient.createOffer();
+//      peerConnectionClient.startVideoSource();
     }
 //    updateVideoView();
     // Create offer. Offer SDP will be sent to answering client in
@@ -739,12 +742,12 @@ public class CallActivity extends RTCConnection implements
   @Override
   protected void onStop() {
     super.onStop();
-    if (mBound) {
-//      closeCamera();
-      mService.removeTextureView();
-      unbindService(mConnection);
-      mBound = false;
-    }
+//    if (mBound) {
+////      closeCamera();
+//      mService.removeTextureView();
+//      unbindService(mConnection);
+//      mBound = false;
+//    }
   }
 
 //  private void requestCameraPermission() {
