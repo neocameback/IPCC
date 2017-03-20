@@ -69,7 +69,7 @@ public abstract class RTCConnection extends FragmentActivity implements
     public static SharedPreferences sharedPref;
     private boolean commandLineRun;
     public int runTimeMs;
-    public boolean activityRunning;
+    public static boolean activityRunning;
 
     public AppRTCAudioManager audioManager = null;
     public RendererCommon.ScalingType scalingType;

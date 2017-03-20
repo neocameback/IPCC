@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -17,6 +18,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * service for drag view
@@ -59,7 +62,13 @@ public class DraggableService extends Service {
     mTextureViewll = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.small_textureview, null);
 
     mAutoFitTextureView = (SurfaceViewRenderer) mTextureViewll.findViewById(R.id.remote_video_view);
-
+    mAutoFitTextureView.setOnTouchListener(new View.OnTouchListener() {
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        Log.d(TAG, "onTouch: ");
+        return false;
+      }
+    });
     window = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
     Display display = window.getDefaultDisplay();
     width = display.getWidth();
@@ -68,11 +77,11 @@ public class DraggableService extends Service {
 //		chatHead.setImageResource(R.drawable.face1);
 
     params = new WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT);
+        WindowManager.LayoutParams.WRAP_CONTENT,
+        WindowManager.LayoutParams.WRAP_CONTENT,
+        WindowManager.LayoutParams.TYPE_PHONE,
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+        PixelFormat.TRANSLUCENT);
 
     params.gravity = Gravity.TOP | Gravity.LEFT;
     params.x = width;
@@ -103,14 +112,14 @@ public class DraggableService extends Service {
             }
 
             params.y = initialY
-                    + (int) (event.getRawY() - initialTouchY);
+                + (int) (event.getRawY() - initialTouchY);
             window.updateViewLayout(mTextureViewll, params);
             return true;
           case MotionEvent.ACTION_MOVE:
             params.x = initialX
-                    + (int) (event.getRawX() - initialTouchX);
+                + (int) (event.getRawX() - initialTouchX);
             params.y = initialY
-                    + (int) (event.getRawY() - initialTouchY);
+                + (int) (event.getRawY() - initialTouchY);
             window.updateViewLayout(mTextureViewll, params);
             return true;
         }

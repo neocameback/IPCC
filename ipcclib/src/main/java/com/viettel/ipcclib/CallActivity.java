@@ -96,11 +96,11 @@ public class CallActivity extends RTCConnection implements
   public CallFragment callFragment;
   public HudFragment hudFragment;
   public EglBase rootEglBase;
-//  public PercentFrameLayout localRenderLayout;
+  //  public PercentFrameLayout localRenderLayout;
   public PercentFrameLayout remoteRenderLayout;
   public PercentFrameLayout screenRenderLayout;
 
-//  public SurfaceViewRenderer localRender;
+  //  public SurfaceViewRenderer localRender;
   public SurfaceViewRenderer remoteRender;
   public SurfaceViewRenderer screenRender;
   private GestureDetectorCompat mDetector;
@@ -207,7 +207,8 @@ public class CallActivity extends RTCConnection implements
     // MODE_IN_COMMUNICATION for best possible VoIP performance.
     Log.d(TAG, "Initializing the audio manager...");
     audioManager.init();
-    bindDragService();
+    startService(new Intent(this, CallService.class));
+//    bindDragService();
   }
 
   @Override
@@ -508,8 +509,9 @@ public class CallActivity extends RTCConnection implements
   private SurfaceViewRenderer mDragSerfaceView;
 
 
-
-  /** Defines callbacks for service binding, passed to bindService() */
+  /**
+   * Defines callbacks for service binding, passed to bindService()
+   */
   private ServiceConnection mConnection = new ServiceConnection() {
 
     @Override
@@ -600,7 +602,7 @@ public class CallActivity extends RTCConnection implements
 //    roomUrl = "wss://192.168.0.117:8898";
     // Video call enabled flag.
     boolean videoCallEnabled = sharedPref.getBoolean(keyprefVideoCallEnabled,
-         Boolean.valueOf(getString(R.string.pref_videocall_default)));
+        Boolean.valueOf(getString(R.string.pref_videocall_default)));
 
     // Get default codecs.
     String videoCodec = sharedPref.getString(keyprefVideoCodec, getString(R.string.pref_videocodec_default));
@@ -626,7 +628,7 @@ public class CallActivity extends RTCConnection implements
     // Get video resolution from settings.
     int videoWidth = 0;
     int videoHeight = 0;
-     String resolution = sharedPref.getString(keyprefResolution,
+    String resolution = sharedPref.getString(keyprefResolution,
         getString(R.string.pref_resolution_default));
     String[] dimensions = resolution.split("[ x]+");
     if (dimensions.length == 2) {
@@ -738,7 +740,6 @@ public class CallActivity extends RTCConnection implements
 //          REQUEST_CAMERA_PERMISSION);
 //    }
 //  }
-
 
 
   private void bindDragService() {
