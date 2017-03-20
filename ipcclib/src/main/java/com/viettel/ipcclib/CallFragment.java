@@ -88,7 +88,12 @@ public class CallFragment extends Fragment {
       Bundle savedInstanceState) {
     controlView =
         inflater.inflate(R.layout.fragment_call, container, false);
-
+      controlView.findViewById(R.id.back_iv).setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          callEvents.onCallHangUp();
+        }
+      });
 //     Create UI controls.
     contactView =
         (TextView) controlView.findViewById(R.id.video_call_username_tv);

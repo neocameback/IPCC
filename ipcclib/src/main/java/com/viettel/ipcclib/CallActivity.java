@@ -110,8 +110,8 @@ public class CallActivity extends RTCConnection implements
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    Thread.setDefaultUncaughtExceptionHandler(
-        new UnhandledExceptionHandler(this));
+//    Thread.setDefaultUncaughtExceptionHandler(
+//        new UnhandledExceptionHandler(this));
 
     // Set window styles for fullscreen-window size. Needs to be done before
     // adding content.
@@ -267,7 +267,11 @@ public class CallActivity extends RTCConnection implements
       @Override
       public void run() {
         if (!isError && iceConnected) {
-          hudFragment.updateEncoderStatistics(reports);
+          try {
+            hudFragment.updateEncoderStatistics(reports);
+          } catch (Exception e) {
+            e.getStackTrace();
+          }
         }
       }
     });
@@ -279,9 +283,13 @@ public class CallActivity extends RTCConnection implements
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        logAndToast("ICE connected, delay=" + delta + "ms");
-        iceConnected = true;
-        callConnected();
+        try {
+          logAndToast("ICE connected, delay=" + delta + "ms");
+          iceConnected = true;
+          callConnected();
+        } catch (Exception e) {
+          e.getStackTrace();
+        }
       }
     });
   }
@@ -556,18 +564,18 @@ public class CallActivity extends RTCConnection implements
     ft.commit();
     // setup video
 //    if (peerConnectionClient == null) {
-      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
-      initPeerConnectionParameters();
-      peerConnectionClient = PeerConnectionClient.getInstance(true);
-      peerConnectionClient.createPeerConnectionFactory(
-          CallActivity.this, peerConnectionParameters, CallActivity.this);
+    mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+    initPeerConnectionParameters();
+    peerConnectionClient = PeerConnectionClient.getInstance(true);
+    peerConnectionClient.createPeerConnectionFactory(
+        CallActivity.this, peerConnectionParameters, CallActivity.this);
 
-      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-          mDragSerfaceView, remoteRender, screenRender,
-          roomConnectionParameters.initiator);
-      logAndToast("Creating OFFER...");
-      peerConnectionClient.createOffer();
-      appRtcClient.makeCall();
+    peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+        mDragSerfaceView, remoteRender, screenRender,
+        roomConnectionParameters.initiator);
+    logAndToast("Creating OFFER...");
+    peerConnectionClient.createOffer();
+    appRtcClient.makeCall();
 //    } else {
 //      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
 //      initPeerConnectionParameters();
