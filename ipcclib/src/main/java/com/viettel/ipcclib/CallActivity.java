@@ -322,7 +322,7 @@ public class CallActivity extends RTCConnection implements
     if (logToast != null) {
       logToast.cancel();
     }
-    activityRunning = false;
+//    activityRunning = false;
 
 
 //    unregisterReceiver(broadcast_reciever);
@@ -542,7 +542,7 @@ public class CallActivity extends RTCConnection implements
   };
 
   private void initDragAndMakeCall() {
-    if (callFragment == null) {
+//    if (callFragment == null) {
       callFragment = new CallFragment();
       hudFragment = new HudFragment();
       // Send intent arguments to fragments.
@@ -550,7 +550,7 @@ public class CallActivity extends RTCConnection implements
       hudFragment.setArguments(getIntent().getExtras());
 
       // Activate call and HUD fragments and start the call.
-    }
+//    }
     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
     ft.add(R.id.call_fragment_container, callFragment);
     ft.add(R.id.hud_fragment_container, hudFragment);
@@ -581,6 +581,7 @@ public class CallActivity extends RTCConnection implements
           roomConnectionParameters.initiator);
       logAndToast("Creating OFFER...");
       peerConnectionClient.createOffer();
+      peerConnectionClient.startVideoSource();
     }
 //    updateVideoView();
     // Create offer. Offer SDP will be sent to answering client in
