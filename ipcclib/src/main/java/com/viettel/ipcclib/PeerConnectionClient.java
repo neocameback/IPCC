@@ -1017,6 +1017,15 @@ public class PeerConnectionClient {
     videoCapturer.onOutputFormatRequest(width, height, framerate);
   }
 
+
+  public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
+    pcObserver.replaceRemoteRender(remoteRender);
+  }
+
+  public void replaceScreenRender(VideoRenderer.Callbacks screenRender) {
+    pcObserver.replaceScreenRender(screenRender);
+  }
+
   // Implementation detail: observe ICE & stream changes and react accordingly.
   private class PCObserver implements PeerConnection.Observer {
     @Override
@@ -1094,6 +1103,16 @@ public class PeerConnectionClient {
           }
         }
       });
+    }
+
+    public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
+      remoteVideoTrack.dispose();
+      remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
+    }
+
+    public void replaceScreenRender(VideoRenderer.Callbacks screenRender) {
+      remoteScreenTrack.dispose();
+      remoteScreenTrack.addRenderer(new VideoRenderer(screenRender));
     }
 
     @Override

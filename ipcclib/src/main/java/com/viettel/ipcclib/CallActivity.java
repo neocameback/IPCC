@@ -143,10 +143,10 @@ public class CallActivity extends RTCConnection implements
 
     // Create UI controls.
 //    localRender = (SurfaceViewRenderer) findViewById(R.id.local_video_view);
-    if (remoteRender == null) {
+//    if (remoteRender == null) {
       remoteRender = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
-    }
-    if (screenRender == null)
+//    }
+//    if (screenRender == null)
       screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
 
 //    localRenderLayout = (PercentFrameLayout) findViewById(R.id.local_video_layout);
@@ -573,6 +573,8 @@ public class CallActivity extends RTCConnection implements
       peerConnectionClient.createOffer();
       appRtcClient.makeCall();
     } else {
+      peerConnectionClient.replaceRemoteRender(remoteRender);
+      peerConnectionClient.replaceScreenRender(screenRender);
 //      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
 //      initPeerConnectionParameters();
 //      peerConnectionClient = PeerConnectionClient.getInstance(true);
