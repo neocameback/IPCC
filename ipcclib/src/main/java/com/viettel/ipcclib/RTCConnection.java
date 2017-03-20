@@ -64,7 +64,7 @@ public abstract class RTCConnection extends FragmentActivity implements
     public Toast logToast;
     public long callStartedTimeMs = 0;
     private static final String TAG = "RTCConnection";
-    public boolean iceConnected;
+    public static boolean iceConnected;
     public boolean isError;
     public static SharedPreferences sharedPref;
     private boolean commandLineRun;

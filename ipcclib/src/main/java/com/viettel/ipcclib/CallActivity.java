@@ -93,14 +93,14 @@ public class CallActivity extends RTCConnection implements
   private boolean sendDisconnectToPeer = true;
   private long callStartedTimeMs = 0;
   // Controls
-  public CallFragment callFragment;
-  public HudFragment hudFragment;
+  public static CallFragment callFragment;
+  public static HudFragment hudFragment;
   public EglBase rootEglBase;
-//  public PercentFrameLayout localRenderLayout;
+  //  public PercentFrameLayout localRenderLayout;F
   public PercentFrameLayout remoteRenderLayout;
   public PercentFrameLayout screenRenderLayout;
 
-//  public SurfaceViewRenderer localRender;
+  //  public SurfaceViewRenderer localRender;
   public SurfaceViewRenderer remoteRender;
   public SurfaceViewRenderer screenRender;
   private GestureDetectorCompat mDetector;
@@ -136,8 +136,10 @@ public class CallActivity extends RTCConnection implements
     scalingType = ScalingType.SCALE_ASPECT_FILL;
 
 
-    callFragment = new CallFragment();
-    hudFragment = new HudFragment();
+    if (callFragment == null) {
+      callFragment = new CallFragment();
+      hudFragment = new HudFragment();
+    }
 
     // Create UI controls.
 //    localRender = (SurfaceViewRenderer) findViewById(R.id.local_video_view);
@@ -316,17 +318,17 @@ public class CallActivity extends RTCConnection implements
   @Override
   protected void onDestroy() {
 
-    disconnect(sendDisconnectToPeer);
+//    disconnect(sendDisconnectToPeer);
     if (logToast != null) {
       logToast.cancel();
     }
     activityRunning = false;
 
 
-    unregisterReceiver(broadcast_reciever);
-    broadcastIsRegistered = false;
+//    unregisterReceiver(broadcast_reciever);
+//    broadcastIsRegistered = false;
 
-    rootEglBase.release();
+//    rootEglBase.release();
     super.onDestroy();
 
   }
@@ -505,11 +507,12 @@ public class CallActivity extends RTCConnection implements
   // TODO drag
   private DraggableService mService;
   boolean mBound = false;
-  private SurfaceViewRenderer mDragSerfaceView;
+  private static SurfaceViewRenderer mDragSerfaceView;
 
 
-
-  /** Defines callbacks for service binding, passed to bindService() */
+  /**
+   * Defines callbacks for service binding, passed to bindService()
+   */
   private ServiceConnection mConnection = new ServiceConnection() {
 
     @Override
@@ -539,36 +542,49 @@ public class CallActivity extends RTCConnection implements
   };
 
   private void initDragAndMakeCall() {
-    callFragment = new CallFragment();
-    hudFragment = new HudFragment();
-    // Send intent arguments to fragments.
-    callFragment.setArguments(getIntent().getExtras());
-    hudFragment.setArguments(getIntent().getExtras());
+    if (callFragment == null) {
+      callFragment = new CallFragment();
+      hudFragment = new HudFragment();
+      // Send intent arguments to fragments.
+      callFragment.setArguments(getIntent().getExtras());
+      hudFragment.setArguments(getIntent().getExtras());
 
-    // Activate call and HUD fragments and start the call.
+      // Activate call and HUD fragments and start the call.
+    }
     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
     ft.add(R.id.call_fragment_container, callFragment);
     ft.add(R.id.hud_fragment_container, hudFragment);
     ft.commit();
-
     // setup video
-    initPeerConnectionParameters();
-    mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+    if (peerConnectionClient == null) {
+      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+      initPeerConnectionParameters();
+      peerConnectionClient = PeerConnectionClient.getInstance(true);
+      peerConnectionClient.createPeerConnectionFactory(
+          CallActivity.this, peerConnectionParameters, CallActivity.this);
 
-    peerConnectionClient = PeerConnectionClient.getInstance(true);
-    peerConnectionClient.createPeerConnectionFactory(
-        CallActivity.this, peerConnectionParameters, CallActivity.this);
+      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+          mDragSerfaceView, remoteRender, screenRender,
+          roomConnectionParameters.initiator);
+      logAndToast("Creating OFFER...");
+      peerConnectionClient.createOffer();
+      appRtcClient.makeCall();
+    } else {
+      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+      initPeerConnectionParameters();
+      peerConnectionClient = PeerConnectionClient.getInstance(true);
+      peerConnectionClient.createPeerConnectionFactory(
+          CallActivity.this, peerConnectionParameters, CallActivity.this);
 
-    peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-        mDragSerfaceView, remoteRender, screenRender,
-        roomConnectionParameters.initiator);
-
-    logAndToast("Creating OFFER...");
+      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+          mDragSerfaceView, remoteRender, screenRender,
+          roomConnectionParameters.initiator);
+      logAndToast("Creating OFFER...");
+      peerConnectionClient.createOffer();
+    }
+//    updateVideoView();
     // Create offer. Offer SDP will be sent to answering client in
     // PeerConnectionEvents.onLocalDescription event.
-    peerConnectionClient.createOffer();
-
-    appRtcClient.makeCall();
   }
 
   private void initPeerConnectionParameters() {
@@ -600,7 +616,7 @@ public class CallActivity extends RTCConnection implements
 //    roomUrl = "wss://192.168.0.117:8898";
     // Video call enabled flag.
     boolean videoCallEnabled = sharedPref.getBoolean(keyprefVideoCallEnabled,
-         Boolean.valueOf(getString(R.string.pref_videocall_default)));
+        Boolean.valueOf(getString(R.string.pref_videocall_default)));
 
     // Get default codecs.
     String videoCodec = sharedPref.getString(keyprefVideoCodec, getString(R.string.pref_videocodec_default));
@@ -626,7 +642,7 @@ public class CallActivity extends RTCConnection implements
     // Get video resolution from settings.
     int videoWidth = 0;
     int videoHeight = 0;
-     String resolution = sharedPref.getString(keyprefResolution,
+    String resolution = sharedPref.getString(keyprefResolution,
         getString(R.string.pref_resolution_default));
     String[] dimensions = resolution.split("[ x]+");
     if (dimensions.length == 2) {
@@ -722,12 +738,12 @@ public class CallActivity extends RTCConnection implements
   @Override
   protected void onStop() {
     super.onStop();
-    if (mBound) {
+//    if (mBound) {
 //      closeCamera();
-      mService.removeTextureView();
-      unbindService(mConnection);
-      mBound = false;
-    }
+//      mService.removeTextureView();
+//      unbindService(mConnection);
+//      mBound = false;
+//    }
   }
 
 //  private void requestCameraPermission() {
@@ -738,7 +754,6 @@ public class CallActivity extends RTCConnection implements
 //          REQUEST_CAMERA_PERMISSION);
 //    }
 //  }
-
 
 
   private void bindDragService() {
