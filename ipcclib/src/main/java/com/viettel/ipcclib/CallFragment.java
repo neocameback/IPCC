@@ -101,8 +101,8 @@ public class CallFragment extends Fragment {
 
     cameraSwitchButton =
         (ImageView) controlView.findViewById(R.id.button_call_switch_camera);
-//    videoScalingButton =
-//        (ImageButton) controlView.findViewById(R.id.button_call_scaling_mode);
+    videoScalingButton =
+        (ImageButton) controlView.findViewById(R.id.button_call_scaling_mode);
 //    captureFormatText =
 //        (TextView) controlView.findViewById(R.id.capture_format_text_call);
 //    captureFormatSlider =
@@ -131,21 +131,21 @@ public class CallFragment extends Fragment {
       }
     });
 
-//    videoScalingButton.setOnClickListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View view) {
-//        if (scalingType == ScalingType.SCALE_ASPECT_FILL) {
-//          videoScalingButton.setBackgroundResource(
-//              R.drawable.ic_close);
-//          scalingType = ScalingType.SCALE_ASPECT_FIT;
-//        } else {
-//          videoScalingButton.setBackgroundResource(
-//              R.drawable.ic_close);
-//          scalingType = ScalingType.SCALE_ASPECT_FILL;
-//        }
-//        callEvents.onVideoScalingSwitch(scalingType);
-//      }
-//    });
+    videoScalingButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (scalingType == ScalingType.SCALE_ASPECT_FILL) {
+          videoScalingButton.setBackgroundResource(
+              R.drawable.ic_close);
+          scalingType = ScalingType.SCALE_ASPECT_FIT;
+        } else {
+          videoScalingButton.setBackgroundResource(
+              R.drawable.ic_close);
+          scalingType = ScalingType.SCALE_ASPECT_FILL;
+        }
+        callEvents.onVideoScalingSwitch(scalingType);
+      }
+    });
     scalingType = ScalingType.SCALE_ASPECT_FIT;
 
     return controlView;

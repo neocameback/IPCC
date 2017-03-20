@@ -90,6 +90,10 @@
       </RelativeLayout>
 
     </RelativeLayout>
-
+    <ImageButton
+        android:id="@+id/button_call_scaling_mode"
+        android:layout_width="wrap_content"
+        android:src="@android:drawable/arrow_up_float"
+        android:layout_height="wrap_content"/>
   </LinearLayout>
 </RelativeLayout>

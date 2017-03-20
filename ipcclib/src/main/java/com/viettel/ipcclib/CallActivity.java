@@ -317,8 +317,7 @@ public class CallActivity extends RTCConnection implements
 
   @Override
   protected void onDestroy() {
-
-//    disconnect(sendDisconnectToPeer);
+    disconnect(sendDisconnectToPeer);
     if (logToast != null) {
       logToast.cancel();
     }
@@ -556,7 +555,7 @@ public class CallActivity extends RTCConnection implements
     ft.add(R.id.hud_fragment_container, hudFragment);
     ft.commit();
     // setup video
-    if (peerConnectionClient == null) {
+//    if (peerConnectionClient == null) {
       mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
       initPeerConnectionParameters();
       peerConnectionClient = PeerConnectionClient.getInstance(true);
@@ -569,20 +568,20 @@ public class CallActivity extends RTCConnection implements
       logAndToast("Creating OFFER...");
       peerConnectionClient.createOffer();
       appRtcClient.makeCall();
-    } else {
-      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
-      initPeerConnectionParameters();
-      peerConnectionClient = PeerConnectionClient.getInstance(true);
-      peerConnectionClient.createPeerConnectionFactory(
-          CallActivity.this, peerConnectionParameters, CallActivity.this);
-
-      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-          mDragSerfaceView, remoteRender, screenRender,
-          roomConnectionParameters.initiator);
-      logAndToast("Creating OFFER...");
-      peerConnectionClient.createOffer();
-      peerConnectionClient.startVideoSource();
-    }
+//    } else {
+//      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+//      initPeerConnectionParameters();
+//      peerConnectionClient = PeerConnectionClient.getInstance(true);
+//      peerConnectionClient.createPeerConnectionFactory(
+//          CallActivity.this, peerConnectionParameters, CallActivity.this);
+//
+//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+//          mDragSerfaceView, remoteRender, screenRender,
+//          roomConnectionParameters.initiator);
+//      logAndToast("Creating OFFER...");
+//      peerConnectionClient.createOffer();
+//      peerConnectionClient.startVideoSource();
+//    }
 //    updateVideoView();
     // Create offer. Offer SDP will be sent to answering client in
     // PeerConnectionEvents.onLocalDescription event.
