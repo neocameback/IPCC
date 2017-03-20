@@ -101,8 +101,8 @@ public class CallActivity extends RTCConnection implements
   public PercentFrameLayout screenRenderLayout;
 
   //  public SurfaceViewRenderer localRender;
-  public SurfaceViewRenderer remoteRender;
-  public SurfaceViewRenderer screenRender;
+  public static SurfaceViewRenderer remoteRender;
+  public static SurfaceViewRenderer screenRender;
   private GestureDetectorCompat mDetector;
   private static boolean broadcastIsRegistered;
 
@@ -322,13 +322,13 @@ public class CallActivity extends RTCConnection implements
     if (logToast != null) {
       logToast.cancel();
     }
-//    activityRunning = false;
+    activityRunning = false;
 
 
-//    unregisterReceiver(broadcast_reciever);
-//    broadcastIsRegistered = false;
+    unregisterReceiver(broadcast_reciever);
+    broadcastIsRegistered = false;
 
-//    rootEglBase.release();
+    rootEglBase.release();
     super.onDestroy();
 
   }
@@ -543,13 +543,13 @@ public class CallActivity extends RTCConnection implements
 
   private void initDragAndMakeCall() {
 //    if (callFragment == null) {
-      callFragment = new CallFragment();
-      hudFragment = new HudFragment();
-      // Send intent arguments to fragments.
-      callFragment.setArguments(getIntent().getExtras());
-      hudFragment.setArguments(getIntent().getExtras());
+    callFragment = new CallFragment();
+    hudFragment = new HudFragment();
+    // Send intent arguments to fragments.
+    callFragment.setArguments(getIntent().getExtras());
+    hudFragment.setArguments(getIntent().getExtras());
 
-      // Activate call and HUD fragments and start the call.
+    // Activate call and HUD fragments and start the call.
 //    }
     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
     ft.add(R.id.call_fragment_container, callFragment);
@@ -739,12 +739,12 @@ public class CallActivity extends RTCConnection implements
   @Override
   protected void onStop() {
     super.onStop();
-//    if (mBound) {
+    if (mBound) {
 //      closeCamera();
-//      mService.removeTextureView();
-//      unbindService(mConnection);
-//      mBound = false;
-//    }
+      mService.removeTextureView();
+      unbindService(mConnection);
+      mBound = false;
+    }
   }
 
 //  private void requestCameraPermission() {

@@ -537,7 +537,7 @@ public class ConnectActivity extends RTCConnection
             "                           \"username\": \"viettel\",\n" +
             "                           \"password\": \"123456aA\",\n" +
             "                           \"urls\": [\n" +
-            "                                    \"turn:stun:203.190.170.131:49352\"\n" +
+            "                                    \"turn:203.190.170.131:49352\"\n" +
             "                                    ]\n" +
             "                           }\n" +
             "                           ]\n" +
