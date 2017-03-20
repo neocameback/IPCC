@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -32,9 +33,9 @@ public class CallFragment extends Fragment {
   private View controlView;
 
   private TextView contactView;
-  private ImageButton disconnectButton;
-  private ImageButton audioButton;
-  private ImageButton cameraSwitchButton;
+  private ImageView disconnectButton;
+  private ImageView audioButton;
+  private ImageView cameraSwitchButton;
   private ImageButton videoScalingButton;
   private TextView captureFormatText;
   private SeekBar captureFormatSlider;
@@ -87,25 +88,30 @@ public class CallFragment extends Fragment {
       Bundle savedInstanceState) {
     controlView =
         inflater.inflate(R.layout.fragment_call, container, false);
-
-    // Create UI controls.
+      controlView.findViewById(R.id.back_iv).setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          callEvents.onCallHangUp();
+        }
+      });
+//     Create UI controls.
     contactView =
-        (TextView) controlView.findViewById(R.id.contact_name_call);
+        (TextView) controlView.findViewById(R.id.video_call_username_tv);
 
     disconnectButton =
-        (ImageButton) controlView.findViewById(R.id.button_call_disconnect);
+        (ImageView) controlView.findViewById(R.id.button_call_disconnect);
 
     audioButton =
-            (ImageButton) controlView.findViewById(R.id.button_audio_on_off);
+            (ImageView) controlView.findViewById(R.id.button_audio_on_off);
 
     cameraSwitchButton =
-        (ImageButton) controlView.findViewById(R.id.button_call_switch_camera);
+        (ImageView) controlView.findViewById(R.id.button_call_switch_camera);
     videoScalingButton =
         (ImageButton) controlView.findViewById(R.id.button_call_scaling_mode);
-    captureFormatText =
-        (TextView) controlView.findViewById(R.id.capture_format_text_call);
-    captureFormatSlider =
-        (SeekBar) controlView.findViewById(R.id.capture_format_slider_call);
+//    captureFormatText =
+//        (TextView) controlView.findViewById(R.id.capture_format_text_call);
+//    captureFormatSlider =
+//        (SeekBar) controlView.findViewById(R.id.capture_format_slider_call);
 
     // Add buttons click events.
     disconnectButton.setOnClickListener(new View.OnClickListener() {
@@ -145,7 +151,7 @@ public class CallFragment extends Fragment {
         callEvents.onVideoScalingSwitch(scalingType);
       }
     });
-    scalingType = ScalingType.SCALE_ASPECT_FILL;
+    scalingType = ScalingType.SCALE_ASPECT_FIT;
 
     return controlView;
   }
@@ -166,13 +172,13 @@ public class CallFragment extends Fragment {
     if (!videoCallEnabled) {
       cameraSwitchButton.setVisibility(View.INVISIBLE);
     }
-    if (captureSliderEnabled) {
-      captureFormatSlider.setOnSeekBarChangeListener(
-          new CaptureQualityController(captureFormatText, callEvents));
-    } else {
-      captureFormatText.setVisibility(View.GONE);
-      captureFormatSlider.setVisibility(View.GONE);
-    }
+//    if (captureSliderEnabled) {
+//      captureFormatSlider.setOnSeekBarChangeListener(
+//          new CaptureQualityController(captureFormatText, callEvents));
+//    } else {
+//      captureFormatText.setVisibility(View.GONE);
+//      captureFormatSlider.setVisibility(View.GONE);
+//    }
   }
 
   @Override

@@ -513,7 +513,7 @@ public class PeerConnectionClient {
           "OfferToReceiveAudio", "true"));
     }else{
       sdpMediaConstraints.mandatory.add(new KeyValuePair(
-              "OfferToReceiveAudio", "false"));
+              "OfferToReceiveAudio", "true"));
     }
 
     if (videoCallEnabled) {
@@ -521,7 +521,7 @@ public class PeerConnectionClient {
           "OfferToReceiveVideo", "true"));
     } else {
       sdpMediaConstraints.mandatory.add(new KeyValuePair(
-          "OfferToReceiveVideo", "false"));
+          "OfferToReceiveVideo", "true"));
     }
   }
 

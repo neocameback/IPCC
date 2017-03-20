@@ -5,7 +5,10 @@ import com.viettel.ipcclib.R;
 import com.viettel.ipcclib.common.WSFragment;
 import com.viettel.ipcclib.model.MessageData;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -15,6 +18,7 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -45,10 +49,11 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 
   private ChatTextProcess mChatProcess;
   private Handler mHanlder = new Handler();
-
+  Activity activity ;
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    activity = getActivity();
   }
 
   @Nullable
@@ -72,7 +77,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     v.findViewById(R.id.chat_text_back_img).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        mContext.finish();
+        activity.finish();
       }
     });
 
@@ -82,7 +87,18 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
         checkPermissions();
       }
     });
-
+    if (isConnect) {
+      mTopMessageTv.setVisibility(View.GONE);
+    } else {
+      mTopMessageTv.setVisibility(View.VISIBLE);
+    }
+    getActivity().registerReceiver(new WakefulBroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        if (mTopMessageTv != null)
+          mTopMessageTv.setVisibility(View.GONE);
+      }
+    }, new IntentFilter("GONE_MESSAGE"));
     return v;
   }
 
@@ -126,14 +142,14 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   public void onClick(View v) {
 //    switch (v.getId()) {
 //      case R.id.chat_text_send_tv:
-   if (v.getId() == R.id.chat_text_send_tv) {
-     String msg = mContentChatEt.getText().toString();
-        if (!msg.equals("")) {
-          sendMessage(msg);
-          appendMessage(mContentChatEt.getText().toString(), Message.Type.MINE);
-          mContentChatEt.setText("");
-          mSendTv.setSelected(false);
-        }
+    if (v.getId() == R.id.chat_text_send_tv) {
+      String msg = mContentChatEt.getText().toString();
+      if (!msg.equals("")) {
+        sendMessage(msg);
+        appendMessage(mContentChatEt.getText().toString(), Message.Type.MINE);
+        mContentChatEt.setText("");
+        mSendTv.setSelected(false);
+      }
 //        break;
     }
   }
@@ -162,6 +178,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     return new ChatTextFragment();
   }
 
+  private boolean isConnect = false;
 
   @Override
   protected void onWSConnected() {
@@ -173,12 +190,19 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //        mTopMessageTv.setVisibility(View.GONE);
 //      }
 //    });
-    mHanlder.post(new Runnable() {
-      @Override
-      public void run() {
-        mTopMessageTv.setVisibility(View.GONE);
-      }
-    });
+    isConnect = true;
+    try {
+      activity.sendBroadcast(new Intent("GONE_MESSAGE"));
+    } catch (NullPointerException e) {
+
+    }
+//    mHanlder.post(new Runnable() {
+//      @Override
+//      public void run() {
+//        mTopMessageTv.setVisibility(View.GONE);
+//
+//      }
+//    });
   }
 
   @Override
@@ -195,7 +219,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        setTyping(name, typing);
+    setTyping(name, typing);
 //      }
 //    });
   }
@@ -207,7 +231,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
         if (typing) {
           mTypingTv.setVisibility(View.VISIBLE);
 //      mTypingTv.setText(String.format(mContext.getString(R.string.someone_typing), name));
-          mTypingTv.setText(String.format(mContext.getString(R.string.someone_typing), mContext.getString(R.string.name_agent)));
+          mTypingTv.setText(String.format(activity.getString(R.string.someone_typing), activity.getString(R.string.name_agent)));
         } else {
           mTypingTv.setVisibility(View.GONE);
           mTypingTv.setText("");
@@ -233,9 +257,9 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        appendMessage(message.getMessage(), Message.Type.OTHER);
+    appendMessage(message.getMessage(), Message.Type.OTHER);
 //        setTyping(message.getUserName(), false);
-        setTyping(mContext.getString(R.string.name_agent), false);
+    setTyping(activity.getString(R.string.name_agent), false);
 //      }
 //    });
   }
@@ -254,7 +278,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        appendMessage(mContext.getString(R.string.no_agent_available), Message.Type.NOTICE);
+    appendMessage(activity.getString(R.string.no_agent_available), Message.Type.NOTICE);
 //      }
 //    });
   }
@@ -274,7 +298,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        appendMessage(mContext.getString(R.string.chat_ended), Message.Type.NOTICE);
+    appendMessage(activity.getString(R.string.chat_ended), Message.Type.NOTICE);
 //      }
 //    });
   }
@@ -295,7 +319,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     mHanlder.post(new Runnable() {
       @Override
       public void run() {
-        String msg = String.format(mContext.getString(R.string.format_join_chat), mContext.getString(R.string.name_agent));
+        String msg = String.format(activity.getString(R.string.format_join_chat), activity.getString(R.string.name_agent));
         appendMessage(Html.fromHtml(msg), Message.Type.NOTICE);
       }
     });
@@ -306,9 +330,10 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     mHanlder.post(new Runnable() {
       @Override
       public void run() {
-        if (mContext == null) return;
+        if (activity == null) return;
         mTopMessageTv.setText(R.string.channel_error_title);
-        mTopMessageTv.setTextColor(ContextCompat.getColor(mContext, R.color.error));      }
+        mTopMessageTv.setTextColor(ContextCompat.getColor(activity, R.color.error));
+      }
     });
   }
 
@@ -342,7 +367,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       }
 
       if (missingPermissions.isEmpty()) {
-        startActivity(new Intent(mContext, CallActivity.class));
+        startActivity(new Intent(activity, CallActivity.class));
       } else {
         requestPermission(missingPermissions);
       }
@@ -396,6 +421,12 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //      }
     }
     super.onActivityResult(requestCode, resultCode, data);
+  }
+
+  @Override
+  public void onDestroy() {
+    isConnect = false;
+    super.onDestroy();
   }
 
   @Override
