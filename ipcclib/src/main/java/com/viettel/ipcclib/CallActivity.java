@@ -558,6 +558,14 @@ public class CallActivity extends RTCConnection implements
     ft.add(R.id.call_fragment_container, callFragment);
     ft.add(R.id.hud_fragment_container, hudFragment);
     ft.commit();
+
+    setupPeerConnection();
+//    updateVideoView();
+    // Create offer. Offer SDP will be sent to answering client in
+    // PeerConnectionEvents.onLocalDescription event.
+  }
+
+  private void setupPeerConnection() {
     // setup video
     if (peerConnectionClient == null) {
       mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
@@ -573,20 +581,20 @@ public class CallActivity extends RTCConnection implements
       peerConnectionClient.createOffer();
       appRtcClient.makeCall();
     } else {
-      peerConnectionClient.replaceRemoteRender(remoteRender);
-      peerConnectionClient.replaceScreenRender(screenRender);
-//      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
-//      initPeerConnectionParameters();
-//      peerConnectionClient = PeerConnectionClient.getInstance(true);
+      peerConnectionClient = PeerConnectionClient.getInstance(false);
+      peerConnectionClient.setPeerConnectionParameters(peerConnectionParameters);
 //      peerConnectionClient.createPeerConnectionFactory(
 //          CallActivity.this, peerConnectionParameters, CallActivity.this);
-//
-//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-//          mDragSerfaceView, remoteRender, screenRender,
-//          roomConnectionParameters.initiator);
-//      logAndToast("Creating OFFER...");
-//      peerConnectionClient.createOffer();
-//      peerConnectionClient.startVideoSource();
+      iceConnected = true;
+      peerConnectionClient.createPeerConnectionFactoryScreen(this);
+      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+          mDragSerfaceView, remoteRender, screenRender, false);
+
+//      peerConnectionClient.replaceRemoteRender(remoteRender);
+//      peerConnectionClient.replaceScreenRender(screenRender);
+//      peerConnectionClient.setVideoEnabled(true);
+
+
     }
 //    updateVideoView();
     // Create offer. Offer SDP will be sent to answering client in

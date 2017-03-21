@@ -166,6 +166,10 @@ public class PeerConnectionClient {
     this.renderEGLContext = renderEGLContext;
   }
 
+  public void setPeerConnectionParameters(PeerConnectionParameters peerConnectionParameters) {
+    this.peerConnectionParameters = peerConnectionParameters;
+  }
+
   /**
    * Peer connection parameters.
    */
@@ -1106,13 +1110,21 @@ public class PeerConnectionClient {
     }
 
     public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
-      remoteVideoTrack.dispose();
-      remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
+      PeerConnectionClient.this.remoteRender = remoteRender;
+      if (remoteVideoTrack != null) {
+        remoteVideoTrack.dispose();
+        remoteVideoTrack.setEnabled(renderVideo);
+        remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
+      }
     }
 
     public void replaceScreenRender(VideoRenderer.Callbacks screenRender) {
-      remoteScreenTrack.dispose();
-      remoteScreenTrack.addRenderer(new VideoRenderer(screenRender));
+      PeerConnectionClient.this.screenRender = screenRender;
+      if (remoteScreenTrack != null) {
+        remoteScreenTrack.dispose();
+        remoteScreenTrack.setEnabled(true);
+        remoteScreenTrack.addRenderer(new VideoRenderer(screenRender));
+      }
     }
 
     @Override
