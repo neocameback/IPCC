@@ -14,7 +14,6 @@ import com.viettel.ipcclib.model.MessageData;
 
 import org.webrtc.RendererCommon.ScalingType;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -176,10 +175,8 @@ public class CallFragment extends Fragment {
 //    }
   }
 
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    callEvents = (OnCallEvents) activity;
+  public CallFragment setCallEvents(OnCallEvents callEvents) {
+    this.callEvents = callEvents;
+    return this;
   }
-
 }

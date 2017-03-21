@@ -195,6 +195,7 @@ public abstract class WSFragment extends Fragment {
 
   public void initWebSocket(String wsurl) {
     String from = "nandi";
+    if (roomConnectionParameters == null)
     roomConnectionParameters = new AppRTCClient.RoomConnectionParameters(wsurl, from, false);
 
     Log.i(TAG, "creating appRtcClient with roomUri:" + wsurl + " from:" + from);

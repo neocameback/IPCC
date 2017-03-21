@@ -1,10 +1,10 @@
 package com.viettel.ipcclib.chat;
 
-import com.viettel.ipcclib.CallActivity;
 import com.viettel.ipcclib.R;
 import com.viettel.ipcclib.common.WSFragment;
 import com.viettel.ipcclib.model.MessageData;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -45,6 +45,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 
   private ChatTextProcess mChatProcess;
   private Handler mHanlder = new Handler();
+  private ChatTextVideoListner listener;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -342,7 +343,10 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       }
 
       if (missingPermissions.isEmpty()) {
-        startActivity(new Intent(mContext, CallActivity.class));
+//        startActivity(new Intent(mContext, CallActivity.class));
+        if (listener != null) {
+          listener.onCallVideoClicked();
+        }
       } else {
         requestPermission(missingPermissions);
       }
@@ -401,5 +405,13 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   @Override
   public void onResume() {
     super.onResume();
+  }
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    if (context instanceof ChatTextVideoListner) {
+      listener =(ChatTextVideoListner) context;
+     }
   }
 }
