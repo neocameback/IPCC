@@ -899,7 +899,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         "                           \"password\": \"\",\n" +
         "                           \"urls\": [\n" +
         "                                    \"stun:203.190.170.131:49352\",\n" +
-        "                                    \"stun:10.60.96.56:8478?transport=tcp\",\n" +
+        "                                    \"stun:10.60.96.57:8488?transport=tcp\",\n" +
         "                                    \"stun:stun.l.google.com:19302\",\n" +
         "                                    \"stun:stun1.l.google.com:19302\",\n" +
         "                                    \"stun:stun2.l.google.com:19302\",\n" +
@@ -919,7 +919,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         "                           \"username\": \"viettel\",\n" +
         "                           \"password\": \"123456aA\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"turn:10.60.96.56:8478\"\n" +
+        "                                    \"turn:10.60.96.57:8488\"\n" +
         "                                    ]\n" +
         "                           }\n" +
         "                           ]\n" +

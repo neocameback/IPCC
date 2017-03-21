@@ -78,7 +78,6 @@ public class DraggableService extends Service {
     params.x = width;
     params.y = 200;
 
-
     //this code is for dragging the chat head
     mTextureViewll.setOnTouchListener(new View.OnTouchListener() {
       private int initialX;

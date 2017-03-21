@@ -1022,6 +1022,9 @@ public class PeerConnectionClient {
 
 
   public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
+    if (mediaStream != null) {
+      pcObserver.onAddStream(mediaStream);
+    }
     pcObserver.replaceRemoteRender(remoteRender);
   }
 
@@ -1088,6 +1091,10 @@ public class PeerConnectionClient {
         @Override
         public void run() {
           if (peerConnection == null || isError) {
+            return;
+          }
+          if (stream.videoTracks == null || stream.audioTracks == null) {
+            reportError("Track is NULL in stream: " + stream);
             return;
           }
           if (stream.audioTracks.size() > 1 || stream.videoTracks.size() > 1) {
@@ -1184,7 +1191,7 @@ public class PeerConnectionClient {
       executor.execute(new Runnable() {
         @Override
         public void run() {
-          if (peerConnection == null || isError) {
+           if (peerConnection == null || isError) {
             return;
           }
           if (isInitiator) {

@@ -588,17 +588,26 @@ public class CallActivity extends RTCConnection implements
       peerConnectionClient.createOffer();
       appRtcClient.makeCall();
     } else {
-//      peerConnectionClient.replaceRemoteRender(remoteRender);
-//      peerConnectionClient.replaceScreenRender(screenRender);
-      peerConnectionClient.setScreenSharingConnection(true);
-      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-          mDragSerfaceView, remoteRender, screenRender,
-          roomConnectionParameters.initiator);
-      screenRenderLayout.removeView(screenRender);
+//      peerConnectionClient.setScreenSharingConnection(true);
+//      peerConnectionClient.createPeerConnectionFactory(
+//          CallActivity.this, peerConnectionParameters, CallActivity.this);
+//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+//          mDragSerfaceView, remoteRender, screenRender,
+//          roomConnectionParameters.initiator);
+
+      peerConnectionClient.replaceRemoteRender(remoteRender);
+      remoteRender.invalidate();
+      remoteRender.postInvalidate();
+
+      peerConnectionClient.replaceScreenRender(screenRender);
+      screenRender.invalidate();
+      screenRender.postInvalidate();
+
+//      screenRenderLayout.removeView(screenRender);
       //  screenRender.release();
       // screenRenderLayout.add(screenRender);
-      screenRenderLayout.addView(screenRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-      updateVideoView();
+//      screenRenderLayout.addView(screenRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+//      updateVideoView();
 
 //      peerConnectionClient = PeerConnectionClient.getInstance(false);
 //      peerConnectionClient.setPeerConnectionParameters(peerConnectionParameters);

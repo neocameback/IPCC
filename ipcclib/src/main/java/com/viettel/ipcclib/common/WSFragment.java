@@ -247,7 +247,7 @@ public abstract class WSFragment extends Fragment {
         "                           \"username\": \"\",\n" +
         "                           \"password\": \"\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"stun:10.60.96.56:8478?transport=udp\",\n" +
+        "                                    \"stun:10.60.96.57:8488?transport=udp\",\n" +
         "                                    \"stun:10.60.96.56:8478?transport=tcp\",\n" +
         "                                    \"stun:stun.l.google.com:19302\",\n" +
         "                                    \"stun:stun1.l.google.com:19302\",\n" +
@@ -268,7 +268,7 @@ public abstract class WSFragment extends Fragment {
         "                           \"username\": \"viettel\",\n" +
         "                           \"password\": \"123456aA\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"turn:10.60.96.56:8478\"\n" +
+        "                                    \"turn:10.60.96.57:8488\"\n" +
         "                                    ]\n" +
         "                           }\n" +
         "                           ]\n" +
