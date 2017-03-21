@@ -105,6 +105,7 @@ public class CallActivity extends RTCConnection implements
   public static SurfaceViewRenderer screenRender;
   private GestureDetectorCompat mDetector;
   private static boolean broadcastIsRegistered;
+  private View mRoot;
 
   @Override
   public void onStart() {
@@ -137,7 +138,7 @@ public class CallActivity extends RTCConnection implements
             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
     setContentView(R.layout.activity_call);
-
+    mRoot = findViewById(R.id.root);
 
     iceConnected = false;
 
@@ -596,12 +597,10 @@ public class CallActivity extends RTCConnection implements
 //          roomConnectionParameters.initiator);
 
       peerConnectionClient.replaceRemoteRender(remoteRender);
-      remoteRender.invalidate();
-      remoteRender.postInvalidate();
-
       peerConnectionClient.replaceScreenRender(screenRender);
-      screenRender.invalidate();
-      screenRender.postInvalidate();
+
+      remoteRender.requestLayout();
+      screenRender.requestLayout();
 
 //      screenRenderLayout.removeView(screenRender);
       //  screenRender.release();
@@ -806,5 +805,11 @@ public class CallActivity extends RTCConnection implements
 
     Intent intent = new Intent(this, DraggableService.class);
     this.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+  }
+
+  @Override
+  public void onBackPressed() {
+//    mRoot.setVisibility(View.GONE);
+    super.onBackPressed();
   }
 }

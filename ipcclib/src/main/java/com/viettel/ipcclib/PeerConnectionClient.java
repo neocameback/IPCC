@@ -28,6 +28,7 @@ import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.StatsObserver;
 import org.webrtc.StatsReport;
+import org.webrtc.SurfaceViewRenderer;
 import org.webrtc.VideoCapturerAndroid;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
@@ -123,7 +124,7 @@ public class PeerConnectionClient {
  // AppRTCClient.RoomConnectionParameters roomConnectionParameters;
   private boolean isInitiator;
   private SessionDescription localSdp; // either offer or answer SDP
-  private MediaStream mediaStream;
+  private static MediaStream mediaStream;
   private int numberOfCameras;
   private VideoCapturerAndroid videoCapturer;
   // enableVideo is set to true if video should be rendered and sent.
@@ -133,6 +134,7 @@ public class PeerConnectionClient {
   private VideoTrack remoteScreenTrack;
   private boolean isScreenSharingConnection;
   private EglBase.Context renderEGLContext;
+  private static MediaStream mRemoteMediaStream;
 
   public boolean isScreenSharingConnection() {
     return isScreenSharingConnection;
@@ -1020,16 +1022,22 @@ public class PeerConnectionClient {
     videoCapturer.onOutputFormatRequest(width, height, framerate);
   }
 
+  public MediaStream getRemoteMediaStream() {
+    return mRemoteMediaStream;
+  }
 
   public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
-    if (mediaStream != null) {
-      pcObserver.onAddStream(mediaStream);
-    }
     pcObserver.replaceRemoteRender(remoteRender);
+    if (mRemoteMediaStream != null) {
+      pcObserver.onAddStream(mRemoteMediaStream);
+    }
   }
 
   public void replaceScreenRender(VideoRenderer.Callbacks screenRender) {
     pcObserver.replaceScreenRender(screenRender);
+    if (mRemoteMediaStream != null) {
+      pcObserver.onAddStream(mRemoteMediaStream);
+    }
   }
 
   // Implementation detail: observe ICE & stream changes and react accordingly.
@@ -1087,6 +1095,7 @@ public class PeerConnectionClient {
 
     @Override
     public void onAddStream(final MediaStream stream){
+      mRemoteMediaStream = stream;
       executor.execute(new Runnable() {
         @Override
         public void run() {
@@ -1102,11 +1111,17 @@ public class PeerConnectionClient {
             return;
           }
           if (!isScreenSharingConnection && stream.videoTracks.size() == 1) {
+            if (remoteVideoTrack != null) {
+              remoteVideoTrack.dispose();
+            }
             remoteVideoTrack = stream.videoTracks.get(0);
             remoteVideoTrack.setEnabled(renderVideo);
             remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
           }
           if (isScreenSharingConnection && stream.videoTracks.size() == 1) {
+            if (remoteScreenTrack != null) {
+              remoteScreenTrack.dispose();
+            }
             remoteScreenTrack = stream.videoTracks.get(0);
             remoteScreenTrack.setEnabled(true);
             remoteScreenTrack.addRenderer(new VideoRenderer(screenRender));
@@ -1116,21 +1131,30 @@ public class PeerConnectionClient {
     }
 
     public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
-      PeerConnectionClient.this.remoteRender = remoteRender;
-      if (remoteVideoTrack != null) {
-        remoteVideoTrack.dispose();
-        remoteVideoTrack.setEnabled(renderVideo);
-        remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
+      if (PeerConnectionClient.this.remoteRender != null) {
+        ((SurfaceViewRenderer) PeerConnectionClient.this.remoteRender).release();
+        PeerConnectionClient.this.remoteRender = null;
       }
+      PeerConnectionClient.this.remoteRender = remoteRender;
+//      if (remoteVideoTrack != null) {
+//        remoteVideoTrack.dispose();
+//        remoteVideoTrack.setEnabled(renderVideo);
+//        remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
+//      }
     }
 
     public void replaceScreenRender(VideoRenderer.Callbacks screenRender) {
-      PeerConnectionClient.this.screenRender = screenRender;
-      if (remoteScreenTrack != null) {
-        remoteScreenTrack.dispose();
-        remoteScreenTrack.setEnabled(true);
-        remoteScreenTrack.addRenderer(new VideoRenderer(screenRender));
+      if (PeerConnectionClient.this.screenRender != null) {
+        ((SurfaceViewRenderer) PeerConnectionClient.this.screenRender).release();
+        PeerConnectionClient.this.screenRender = null;
       }
+
+      PeerConnectionClient.this.screenRender = screenRender;
+//      if (remoteScreenTrack != null) {
+//        remoteScreenTrack.dispose();
+//        remoteScreenTrack.setEnabled(true);
+//        remoteScreenTrack.addRenderer(new VideoRenderer(screenRender));
+//      }
     }
 
     @Override
