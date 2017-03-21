@@ -95,7 +95,7 @@ public class CallActivity extends RTCConnection implements
   // Controls
   public static CallFragment callFragment;
   public static HudFragment hudFragment;
-  public EglBase rootEglBase;
+  public static EglBase rootEglBase;
   //  public PercentFrameLayout localRenderLayout;F
   public PercentFrameLayout remoteRenderLayout;
   public PercentFrameLayout screenRenderLayout;
@@ -105,6 +105,14 @@ public class CallActivity extends RTCConnection implements
   public static SurfaceViewRenderer screenRender;
   private GestureDetectorCompat mDetector;
   private static boolean broadcastIsRegistered;
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    activityRunning = true;
+    // Video is not paused for screencapture. See onPause.
+
+  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -144,10 +152,10 @@ public class CallActivity extends RTCConnection implements
     // Create UI controls.
 //    localRender = (SurfaceViewRenderer) findViewById(R.id.local_video_view);
 //    if (remoteRender == null) {
-      remoteRender = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
+    remoteRender = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
 //    }
 //    if (screenRender == null)
-      screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
+    screenRender = (SurfaceViewRenderer) findViewById(R.id.remote_screen_view);
 
 //    localRenderLayout = (PercentFrameLayout) findViewById(R.id.local_video_layout);
     remoteRenderLayout = (PercentFrameLayout) findViewById(R.id.remote_video_layout);
@@ -320,7 +328,6 @@ public class CallActivity extends RTCConnection implements
 
   @Override
   protected void onDestroy() {
-
 //    disconnect(sendDisconnectToPeer);
 //    if (logToast != null) {
 //      logToast.cancel();
@@ -581,18 +588,33 @@ public class CallActivity extends RTCConnection implements
       peerConnectionClient.createOffer();
       appRtcClient.makeCall();
     } else {
-      peerConnectionClient = PeerConnectionClient.getInstance(false);
-      peerConnectionClient.setPeerConnectionParameters(peerConnectionParameters);
-//      peerConnectionClient.createPeerConnectionFactory(
-//          CallActivity.this, peerConnectionParameters, CallActivity.this);
-      iceConnected = true;
-      peerConnectionClient.createPeerConnectionFactoryScreen(this);
-      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-          mDragSerfaceView, remoteRender, screenRender, false);
-
 //      peerConnectionClient.replaceRemoteRender(remoteRender);
 //      peerConnectionClient.replaceScreenRender(screenRender);
+      peerConnectionClient.setScreenSharingConnection(true);
+      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+          mDragSerfaceView, remoteRender, screenRender,
+          roomConnectionParameters.initiator);
+      screenRenderLayout.removeView(screenRender);
+      //  screenRender.release();
+      // screenRenderLayout.add(screenRender);
+      screenRenderLayout.addView(screenRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+      updateVideoView();
+
+//      peerConnectionClient = PeerConnectionClient.getInstance(false);
+//      peerConnectionClient.setPeerConnectionParameters(peerConnectionParameters);
+////      peerConnectionClient.createPeerConnectionFactory(
+////          CallActivity.this, peerConnectionParameters, CallActivity.this);
+//      iceConnected = true;
+//      peerConnectionClient.createPeerConnectionFactoryScreen(this);
+//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+//          mDragSerfaceView, remoteRender, screenRender, false);
+//
+
 //      peerConnectionClient.setVideoEnabled(true);
+//      peerConnectionClient.setScreenRender(screenRender);
+//      peerConnectionClient.setScreenSharingConnection(true);
+//      peerConnectionClient.startVideoSource();
+//      screenRender.postInvalidate();
 
 
     }

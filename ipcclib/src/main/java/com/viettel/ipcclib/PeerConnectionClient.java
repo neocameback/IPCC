@@ -560,7 +560,6 @@ public class PeerConnectionClient {
     rtcConfig.keyType = PeerConnection.KeyType.ECDSA;
 
     peerConnection = factory.createPeerConnection(rtcConfig, pcConstraints, pcObserver);
-
     //isInitiator = false;
 
     // Set default WebRTC tracing and INFO libjingle logging.
