@@ -18,6 +18,12 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
   private static final String SERVICE_ID = "SERVICE_ID";
   private CallViewFragment mCallViewFragment;
   private ChatTextFragment mChatTextFragment;
+  private BroadcastReceiver mChatConnectReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      hangoutVideoCall();
+    }
+  };
 
   public static void start(Context context, String endPoint, String domain, int serviceId) {
     Intent intent = new Intent(context, ChatActivity.class);
@@ -49,12 +55,7 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
     getSupportFragmentManager().beginTransaction().replace(R.id.chat_container,
         mChatTextFragment
     ).commit();
-    registerReceiver(new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-        hangoutVideoCall();
-      }
-    }, new IntentFilter("finish_video_call"));
+    registerReceiver(mChatConnectReceiver, new IntentFilter("finish_video_call"));
   }
 
   @Override
@@ -85,11 +86,10 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
           .hide(mCallViewFragment).commit();
       getSupportFragmentManager().beginTransaction().show(mChatTextFragment).commit();
       mCallViewFragment.showFullVideoText(true);
-      return;
     } else {
       if (mCallViewFragment != null) {
-        mCallViewFragment.onCallHangUp();
-        mCallViewFragment.releaseContextCall();
+//        mCallViewFragment.onCallHangUp();
+//        mCallViewFragment.releaseContextCall();
       }
       super.onBackPressed();
     }
@@ -114,4 +114,9 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
     }
   }
 
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    unregisterReceiver(mChatConnectReceiver);
+  }
 }

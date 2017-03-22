@@ -50,6 +50,17 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   private Handler mHanlder = new Handler();
   private ChatTextVideoListner listener;
   private ChatActivity mChatActivity;
+  private BroadcastReceiver mChatConnectedReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      if (mTopMessageTv != null) {
+        mTopMessageTv.setVisibility(View.GONE);
+      }
+    }
+  };
+
+  private boolean isJoinedRoom = false;
+  private View mVideoCallIv;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,21 +97,15 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       }
     });
 
-    v.findViewById(R.id.video_call_iv).setOnClickListener(new View.OnClickListener() {
+    mVideoCallIv = v.findViewById(R.id.video_call_iv);
+    mVideoCallIv.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         Utils.hideKeyBoard(v);
         checkPermissions();
       }
     });
-    mChatActivity.registerReceiver(new BroadcastReceiver() {
-      @Override
-      public void onReceive(Context context, Intent intent) {
-        if (mTopMessageTv != null) {
-          mTopMessageTv.setVisibility(View.GONE);
-        }
-      }
-    }, new IntentFilter("CHAT_CONNECTED"));
+    mChatActivity.registerReceiver(mChatConnectedReceiver, new IntentFilter("CHAT_CONNECTED"));
     return v;
   }
 
@@ -194,6 +199,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //      }
 //    });
     mChatActivity.sendBroadcast(new Intent("CHAT_CONNECTED"));
+    setConnected(true);
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
@@ -213,6 +219,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //      }
 //    });
 
+    isConnected = true;
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
@@ -276,6 +283,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //      @Override
 //      public void run() {
     appendMessage(mChatActivity.getString(R.string.no_agent_available), Message.Type.NOTICE);
+    setConnected(false);
 //      }
 //    });
   }
@@ -296,6 +304,13 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //      @Override
 //      public void run() {
     appendMessage(mChatActivity.getString(R.string.chat_ended), Message.Type.NOTICE);
+    mHanlder.post(new Runnable() {
+      @Override
+      public void run() {
+        setConnected(false);
+      }
+    });
+
 //    mChatActivity.disconnectVideoCall();
 //      }
 //    });
@@ -319,6 +334,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       public void run() {
         String msg = String.format(mChatActivity.getString(R.string.format_join_chat), mChatActivity.getString(R.string.name_agent));
         appendMessage(Html.fromHtml(msg), Message.Type.NOTICE);
+        setConnected(true);
       }
     });
   }
@@ -326,6 +342,12 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   @Override
   protected void onEndVideoCall() {
 //    mChatActivity.hangoutVideoCall();
+    mHanlder.post(new Runnable() {
+      @Override
+      public void run() {
+//        Toast.makeText(mChatActivity, R.string.end_video, Toast.LENGTH_SHORT).show();
+      }
+    });
   }
 
   @Override
@@ -336,6 +358,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
         if (mChatActivity == null) return;
         mTopMessageTv.setText(R.string.channel_error_title);
         mTopMessageTv.setTextColor(ContextCompat.getColor(mChatActivity, R.color.error));
+        setConnected(false);
       }
     });
   }
@@ -440,5 +463,38 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     if (context instanceof ChatTextVideoListner) {
       listener = (ChatTextVideoListner) context;
     }
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    getActivity().unregisterReceiver(mChatConnectedReceiver);
+
+    if (appRtcClient != null) {
+      appRtcClient.sendStopToPeer();
+      appRtcClient.leaveConversation();
+      appRtcClient.sendDisconnectToPeer();
+      appRtcClient = null;
+    }
+
+    if (peerConnectionClient != null) {
+      peerConnectionClient.close();
+      peerConnectionClient = null;
+    }
+
+    if (peerConnectionClient2 != null) {
+      peerConnectionClient2.close();
+      peerConnectionClient2 = null;
+    }
+
+    roomConnectionParameters = null;
+    peerConnectionParameters = null;
+    signalingParam = null;
+  }
+
+  private void setConnected(boolean connected) {
+    isConnected = connected;
+    mContentChatEt.setEnabled(isConnected);
+    mVideoCallIv.setEnabled(isConnected);
   }
 }

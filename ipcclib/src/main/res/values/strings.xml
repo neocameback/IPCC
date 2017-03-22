@@ -161,4 +161,5 @@
   <string name="chat_text_title">Chat với Viettel</string>
   <string name="connecting">Đang kết nối...</string>
   <string name="drag_video_show_full">Phóng to</string>
+  <string name="end_video">CSKH Viettel đã tắt video</string>
 </resources>

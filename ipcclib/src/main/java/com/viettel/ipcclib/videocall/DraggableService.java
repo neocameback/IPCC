@@ -25,7 +25,7 @@ import android.widget.TextView;
  */
 
 public class DraggableService extends Service {
-  private RelativeLayout mTextureViewll;
+  private RelativeLayout mRoot;
   private SurfaceViewRenderer mAutoFitTextureView;
   private TextView mShowFullTv;
   // Binder given to clients
@@ -36,7 +36,7 @@ public class DraggableService extends Service {
   }
 
   public void removeTextureView() {
-    window.removeView(mTextureViewll);
+    window.removeView(mRoot);
   }
 
   public TextView getShowFullTv() {
@@ -45,7 +45,9 @@ public class DraggableService extends Service {
 
   public void stopService() {
     mAutoFitTextureView.release();
-    window.removeView(mTextureViewll);
+    try {
+      window.removeView(mRoot);
+    } catch (IllegalArgumentException ex) {ex.printStackTrace();}
     stopSelf();
   }
 
@@ -55,7 +57,20 @@ public class DraggableService extends Service {
       mShowFullTv.setVisibility(View.VISIBLE);
     else mShowFullTv.setVisibility(View.INVISIBLE);
 
-    mTextureViewll.invalidate();
+    mRoot.invalidate();
+  }
+
+  public void onResume() {
+//    mRoot.setVisibility(View.GONE);
+    window.addView(mRoot, params);
+  }
+
+  public void onPause() {
+//    mRoot.setVisibility(View.VISIBLE);
+    mAutoFitTextureView.release();
+    try {
+      window.removeView(mRoot);
+    } catch (IllegalArgumentException ex) {ex.printStackTrace();}
   }
 
   /**
@@ -77,10 +92,10 @@ public class DraggableService extends Service {
   @Override
   public void onCreate() {
     super.onCreate();
-    mTextureViewll = (RelativeLayout) LayoutInflater.from(this).inflate(R.layout.small_textureview, null);
+    mRoot = (RelativeLayout) LayoutInflater.from(this).inflate(R.layout.small_textureview, null);
 
-    mAutoFitTextureView = (SurfaceViewRenderer) mTextureViewll.findViewById(R.id.remote_video_view);
-    mShowFullTv = (TextView) mTextureViewll.findViewById(R.id.drag_video_show_full_tv);
+    mAutoFitTextureView = (SurfaceViewRenderer) mRoot.findViewById(R.id.remote_video_view);
+    mShowFullTv = (TextView) mRoot.findViewById(R.id.drag_video_show_full_tv);
 
     window = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
     Display display = window.getDefaultDisplay();
@@ -101,7 +116,7 @@ public class DraggableService extends Service {
     params.y = 200;
 
     //this code is for dragging the chat head
-    mTextureViewll.setOnTouchListener(new View.OnTouchListener() {
+    mRoot.setOnTouchListener(new View.OnTouchListener() {
       private int initialX;
       private int initialY;
       private float initialTouchX;
@@ -125,21 +140,21 @@ public class DraggableService extends Service {
 
             params.y = initialY
                 + (int) (event.getRawY() - initialTouchY);
-            window.updateViewLayout(mTextureViewll, params);
+            window.updateViewLayout(mRoot, params);
             return true;
           case MotionEvent.ACTION_MOVE:
             params.x = initialX
                 + (int) (event.getRawX() - initialTouchX);
             params.y = initialY
                 + (int) (event.getRawY() - initialTouchY);
-            window.updateViewLayout(mTextureViewll, params);
+            window.updateViewLayout(mRoot, params);
             return true;
         }
         return false;
       }
     });
 //    if (mTextureViewll )
-    window.addView(mTextureViewll, params);
+    window.addView(mRoot, params);
   }
 
   @Override

@@ -249,19 +249,6 @@ public abstract class WSFragment extends Fragment {
         "                           \"password\": \"\",\n" +
         "                           \"urls\": [\n" +
         "                                    \"stun:10.60.96.57:8488\"\n" +
-        "                                    \"stun:stun.l.google.com:19302\",\n" +
-        "                                    \"stun:stun1.l.google.com:19302\",\n" +
-        "                                    \"stun:stun2.l.google.com:19302\",\n" +
-        "                                    \"stun:stun3.l.google.com:19302\",\n" +
-        "                                    \"stun:stun4.l.google.com:19302\",\n" +
-        "                                    \"stun:stun.ekiga.net\",\n" +
-        "                                    \"stun:stun.ideasip.com\",\n" +
-        "                                    \"stun:stun.schlund.de\",\n" +
-        "                                    \"stun:stun.voiparound.com\",\n" +
-        "                                    \"stun:stun.voipbuster.com\",\n" +
-        "                                    \"stun:stun.voipstunt.com\",\n" +
-        "                                    \"stun:stun.voxgratia.org\",\n" +
-        "                                    \"stun:stun.services.mozilla.com\"\n" +
         "                                    ]\n" +
         "                           },\n" +
         "                           {\n" +
@@ -323,25 +310,26 @@ public abstract class WSFragment extends Fragment {
   public void onDestroy() {
     super.onDestroy();
 
-    if (appRtcClient != null) {
-      appRtcClient.sendStopToPeer();
-      appRtcClient.leaveConversation();
-      appRtcClient.sendDisconnectToPeer();
-    }
-
-    if (appRtcClient != null) {
-      appRtcClient.sendDisconnectToPeer();
-    }
-
-    if (peerConnectionClient != null) {
-      peerConnectionClient.close();
-      peerConnectionClient = null;
-    }
-
-    if (peerConnectionClient2 != null) {
-      peerConnectionClient2.close();
-      peerConnectionClient2 = null;
-    }
+//    if (appRtcClient != null) {
+//      appRtcClient.sendStopToPeer();
+//      appRtcClient.leaveConversation();
+//      appRtcClient.sendDisconnectToPeer();
+//      appRtcClient = null;
+//    }
+//
+//    if (peerConnectionClient != null) {
+//      peerConnectionClient.close();
+//      peerConnectionClient = null;
+//    }
+//
+//    if (peerConnectionClient2 != null) {
+//      peerConnectionClient2.close();
+//      peerConnectionClient2 = null;
+//    }
+//
+//    roomConnectionParameters = null;
+//    peerConnectionParameters = null;
+//    signalingParam = null;
 
   }
 

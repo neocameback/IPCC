@@ -75,7 +75,7 @@ public class CallViewFragment extends Fragment implements
   public int runTimeMs;
   public boolean activityRunning;
 
-  public AppRTCAudioManager audioManager = null;
+  public static AppRTCAudioManager audioManager = null;
   public boolean callControlFragmentVisible = true;
 
   // Screen video screen position
@@ -236,7 +236,6 @@ public class CallViewFragment extends Fragment implements
     Log.d(TAG, "Initializing the audio manager...");
     audioManager.init();
     bindDragService();
-
     return mRoot;
   }
 
@@ -349,17 +348,13 @@ public class CallViewFragment extends Fragment implements
   @Override
   public void onDestroy() {
 //    disconnect(sendDisconnectToPeer);
-//    if (logToast != null) {
-//      logToast.cancel();
-//    }
-//    activityRunning = false;
-//
-//
-//    unregisterReceiver(broadcast_reciever);
-//    broadcastIsRegistered = false;
-//
-    super.onDestroy();
 
+    unbindSerice();
+    getActivity().unregisterReceiver(broadcast_reciever);
+    broadcastIsRegistered = false;
+    activityRunning = false;
+    audioManager.close();
+    super.onDestroy();
   }
 
   // CallFragment.OnCallEvents interface implementation.
@@ -393,7 +388,7 @@ public class CallViewFragment extends Fragment implements
 //      localRender = null;
 //    }
     if (audioManager != null) {
-//      audioManager.close();
+      audioManager.close();
       audioManager = null;
     }
     if (remoteRender != null) {
@@ -414,7 +409,7 @@ public class CallViewFragment extends Fragment implements
     if (appRtcClient != null && sendRemoteHangup) {
       appRtcClient.sendDisconnectToPeer(); //send bye message to peer only when initiator
       sendDisconnectToPeer = false;
-      // appRtcClient = null;
+       appRtcClient = null;
     }
 
     //DON'T DO THAT if(appRtcClient != null) appRtcClient = null;
@@ -428,13 +423,18 @@ public class CallViewFragment extends Fragment implements
       peerConnectionClient2.close();
       peerConnectionClient2 = null;
     }
+    rootEglBase.release();
     if (sendRemoteHangup) {
-      if (mBound)
-        mChatActivity.unbindService(mConnection);
-      mBound = false;
-      mService.stopService();
+      unbindSerice();
       mChatActivity.hangoutVideoCall();
     }
+  }
+
+  private void unbindSerice() {
+    if (mBound)
+      mChatActivity.unbindService(mConnection);
+    mBound = false;
+    mService.stopService();
   }
 
   // Helper functions.
@@ -928,5 +928,21 @@ public class CallViewFragment extends Fragment implements
   @Override
   public void onPeerConnectionError(final String description) {
     reportError(description);
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    if (mService != null) {
+      mService.onResume();
+    }
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    if (mService != null) {
+      mService.onPause();
+    }
   }
 }
