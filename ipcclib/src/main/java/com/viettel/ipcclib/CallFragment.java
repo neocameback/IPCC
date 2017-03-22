@@ -80,6 +80,7 @@ public class CallFragment extends Fragment {
     public void onAudioMute();
     public void onVideoScalingSwitch(ScalingType scalingType);
     public void onCaptureFormatChange(int width, int height, int framerate);
+    void onBack();
   }
 
   @Override
@@ -121,7 +122,12 @@ public class CallFragment extends Fragment {
         callEvents.onAudioMute();
       }
     });
-
+    controlView.findViewById(R.id.back_iv).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        callEvents.onBack();
+      }
+    });
     cameraSwitchButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -163,9 +169,9 @@ public class CallFragment extends Fragment {
       captureSliderEnabled = videoCallEnabled
           && args.getBoolean(CallActivity.EXTRA_VIDEO_CAPTUREQUALITYSLIDER_ENABLED, false);
     }
-    if (!videoCallEnabled) {
-      cameraSwitchButton.setVisibility(View.INVISIBLE);
-    }
+//    if (!videoCallEnabled) {
+//      cameraSwitchButton.setVisibility(View.INVISIBLE);
+//    }
 //    if (captureSliderEnabled) {
 //      captureFormatSlider.setOnSeekBarChangeListener(
 //          new CaptureQualityController(captureFormatText, callEvents));

@@ -204,6 +204,10 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
 //            JSONObject dataO = json.getJSONObject("data");
         processVideoCall(message);
         break;
+      case LEAVE_CONVERSATION:
+        conversationId = -1;
+        signalingEvents.onEndVideoCallFromWeb();
+        break;
 
       case AGENT_END_CONVERSATION_CUSTOMER:
         conversationId = -1;
@@ -898,8 +902,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         "                           \"username\": \"\",\n" +
         "                           \"password\": \"\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"stun:203.190.170.131:49352\",\n" +
-        "                                    \"stun:10.60.96.57:8488?transport=tcp\",\n" +
+        "                                    \"stun:10.60.96.57:8488\",\n" +
         "                                    \"stun:stun.l.google.com:19302\",\n" +
         "                                    \"stun:stun1.l.google.com:19302\",\n" +
         "                                    \"stun:stun2.l.google.com:19302\",\n" +
@@ -927,6 +930,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         "    },\n" +
         "    \"result\": \"SUCCESS\"\n" +
         "}\n";
+    //203.190.170.131:49352
     JSONObject appConfig = null;
     try {
       appConfig = new JSONObject(dataJsonTurn);

@@ -16,7 +16,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 /**
  * service for drag view
@@ -24,8 +25,9 @@ import android.widget.LinearLayout;
  */
 
 public class DraggableService extends Service {
-  private LinearLayout mTextureViewll;
+  private RelativeLayout mTextureViewll;
   private SurfaceViewRenderer mAutoFitTextureView;
+  private TextView mShowFullTv;
   // Binder given to clients
   private final IBinder mBinder = new LocalBinder();
 
@@ -35,6 +37,25 @@ public class DraggableService extends Service {
 
   public void removeTextureView() {
     window.removeView(mTextureViewll);
+  }
+
+  public TextView getShowFullTv() {
+    return mShowFullTv;
+  }
+
+  public void stopService() {
+    mAutoFitTextureView.release();
+    window.removeView(mTextureViewll);
+    stopSelf();
+  }
+
+  public void updateShowFullVideoText(boolean isShow) {
+    if (mShowFullTv == null) return;
+    if (isShow)
+      mShowFullTv.setVisibility(View.VISIBLE);
+    else mShowFullTv.setVisibility(View.INVISIBLE);
+
+    mTextureViewll.invalidate();
   }
 
   /**
@@ -56,9 +77,10 @@ public class DraggableService extends Service {
   @Override
   public void onCreate() {
     super.onCreate();
-    mTextureViewll = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.small_textureview, null);
+    mTextureViewll = (RelativeLayout) LayoutInflater.from(this).inflate(R.layout.small_textureview, null);
 
     mAutoFitTextureView = (SurfaceViewRenderer) mTextureViewll.findViewById(R.id.remote_video_view);
+    mShowFullTv = (TextView) mTextureViewll.findViewById(R.id.drag_video_show_full_tv);
 
     window = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
     Display display = window.getDefaultDisplay();
@@ -68,11 +90,11 @@ public class DraggableService extends Service {
 //		chatHead.setImageResource(R.drawable.face1);
 
     params = new WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT);
+        WindowManager.LayoutParams.WRAP_CONTENT,
+        WindowManager.LayoutParams.WRAP_CONTENT,
+        WindowManager.LayoutParams.TYPE_PHONE,
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+        PixelFormat.TRANSLUCENT);
 
     params.gravity = Gravity.TOP | Gravity.LEFT;
     params.x = width;
@@ -102,14 +124,14 @@ public class DraggableService extends Service {
             }
 
             params.y = initialY
-                    + (int) (event.getRawY() - initialTouchY);
+                + (int) (event.getRawY() - initialTouchY);
             window.updateViewLayout(mTextureViewll, params);
             return true;
           case MotionEvent.ACTION_MOVE:
             params.x = initialX
-                    + (int) (event.getRawX() - initialTouchX);
+                + (int) (event.getRawX() - initialTouchX);
             params.y = initialY
-                    + (int) (event.getRawY() - initialTouchY);
+                + (int) (event.getRawY() - initialTouchY);
             window.updateViewLayout(mTextureViewll, params);
             return true;
         }

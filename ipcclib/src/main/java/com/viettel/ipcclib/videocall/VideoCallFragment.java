@@ -490,10 +490,11 @@ public class VideoCallFragment extends Fragment
     } else if (v == mMuteAudioIv) {
       // TODO: 3/16/2017 mute audio video call
     } else if (v == mVideoCallIv) {
-//      swapCamera();
+      swapCamera();
       // TODO: 3/17/2017 allow video call
     } else if (v == mBackIv) {
       // TODO: 3/16/2017 finish video call
+      Log.e("@@@@@@@@@@@@@@","Click back");
     }
   }
 

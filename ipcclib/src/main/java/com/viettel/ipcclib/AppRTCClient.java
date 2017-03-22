@@ -175,5 +175,7 @@ public interface AppRTCClient {
     void onAgentTyping(String name, boolean typing);
 
     void onAgentJoinConversation(String fullName);
+
+    void onEndVideoCallFromWeb();
   }
 }

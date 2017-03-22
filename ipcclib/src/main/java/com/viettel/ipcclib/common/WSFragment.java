@@ -42,7 +42,7 @@ public abstract class WSFragment extends Fragment {
   public static final int CONNECTION_REQUEST = 1;
   protected Toast logToast;
   public boolean isError;
-//  private Intent intent = null;
+  //  private Intent intent = null;
   private boolean isBringToFrontReceiverRegistered;
   public boolean iceConnected;
   private BroadcastReceiver bringToFrontBroadcastReceiver;
@@ -94,7 +94,7 @@ public abstract class WSFragment extends Fragment {
   @Override
   public void onDetach() {
     super.onDetach();
-    mContext = null;
+//    mContext = null;
   }
 
   //  private void initIntent() {
@@ -196,7 +196,7 @@ public abstract class WSFragment extends Fragment {
   public void initWebSocket(String wsurl) {
     String from = "nandi";
     if (roomConnectionParameters == null)
-    roomConnectionParameters = new AppRTCClient.RoomConnectionParameters(wsurl, from, false);
+      roomConnectionParameters = new AppRTCClient.RoomConnectionParameters(wsurl, from, false);
 
     Log.i(TAG, "creating appRtcClient with roomUri:" + wsurl + " from:" + from);
     // Create connection client and connection parameters.
@@ -239,8 +239,8 @@ public abstract class WSFragment extends Fragment {
     }
   }
 
-  private void initTurnServer(){
-    String dataJsonTurn="{\n" +
+  private void initTurnServer() {
+    String dataJsonTurn = "{\n" +
         "    \"params\": {\n" +
         "        \"pc_config\": {\n" +
         "            \"iceServers\": [\n" +
@@ -248,8 +248,7 @@ public abstract class WSFragment extends Fragment {
         "                           \"username\": \"\",\n" +
         "                           \"password\": \"\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"stun:10.60.96.57:8488?transport=udp\",\n" +
-        "                                    \"stun:10.60.96.56:8478?transport=tcp\",\n" +
+        "                                    \"stun:10.60.96.57:8488\"\n" +
         "                                    \"stun:stun.l.google.com:19302\",\n" +
         "                                    \"stun:stun1.l.google.com:19302\",\n" +
         "                                    \"stun:stun2.l.google.com:19302\",\n" +
@@ -301,7 +300,7 @@ public abstract class WSFragment extends Fragment {
 
   protected void sendTypingStatus(boolean typing) {
     if (appRtcClient != null)
-    appRtcClient.sendTypingStatus(typing);
+      appRtcClient.sendTypingStatus(typing);
   }
 
   @Override
@@ -330,16 +329,16 @@ public abstract class WSFragment extends Fragment {
       appRtcClient.sendDisconnectToPeer();
     }
 
-    if(appRtcClient != null) {
+    if (appRtcClient != null) {
       appRtcClient.sendDisconnectToPeer();
     }
 
-    if(peerConnectionClient != null) {
+    if (peerConnectionClient != null) {
       peerConnectionClient.close();
       peerConnectionClient = null;
     }
 
-    if(peerConnectionClient2 != null) {
+    if (peerConnectionClient2 != null) {
       peerConnectionClient2.close();
       peerConnectionClient2 = null;
     }
@@ -360,7 +359,7 @@ public abstract class WSFragment extends Fragment {
 //                        appRtcClient.call(sdp);
 //                    } else
             {
-              appRtcClient.sendOfferSdp(sdp,(peerConnectionClient2!=null));
+              appRtcClient.sendOfferSdp(sdp, (peerConnectionClient2 != null));
             }
           }
         }
@@ -373,11 +372,12 @@ public abstract class WSFragment extends Fragment {
         @Override
         public void run() {
           if (appRtcClient != null) {
-            appRtcClient.sendLocalIceCandidate(candidate,(peerConnectionClient2!=null));
+            appRtcClient.sendLocalIceCandidate(candidate, (peerConnectionClient2 != null));
           }
         }
       });
     }
+
     @Override
     public void onIceConnected() {
 
@@ -572,6 +572,10 @@ public abstract class WSFragment extends Fragment {
     }
 
     @Override
+    public void onEndVideoCallFromWeb() {
+    }
+
+    @Override
     public void onChannelError(String description) {
       onWSChannelError(description);
     }
@@ -588,7 +592,7 @@ public abstract class WSFragment extends Fragment {
 
     @Override
     public void endVideoCall() {
-
+      onEndVideoCall();
     }
 
     @Override
@@ -626,6 +630,8 @@ public abstract class WSFragment extends Fragment {
       onWSAgentJoinConversation(fullName);
     }
   };
+
+  protected abstract void onEndVideoCall();
 
   protected abstract void onWSChannelError(String description);
 

@@ -315,6 +315,11 @@ public class CallActivity extends RTCConnection implements
   }
 
   @Override
+  public void onBack() {
+
+  }
+
+  @Override
   public void onCaptureFormatChange(int width, int height, int framerate) {
     if (peerConnectionClient != null) {
       peerConnectionClient.changeCaptureFormat(width, height, framerate);

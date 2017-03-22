@@ -10,6 +10,7 @@
 
 package com.viettel.ipcclib;
 
+import com.viettel.ipcclib.chat.ChatActivity;
 import com.viettel.ipcclib.constants.Configs;
 import com.viettel.ipcclib.videocall.DraggableService;
 
@@ -32,7 +33,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -46,7 +46,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import static android.app.Activity.RESULT_OK;
 import static com.viettel.ipcclib.RTCConnection.STAT_CALLBACK_PERIOD;
 import static com.viettel.ipcclib.common.WSFragment.appRtcClient;
 import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient;
@@ -93,19 +92,26 @@ public class CallViewFragment extends Fragment implements
   private boolean sendDisconnectToPeer = true;
   private long callStartedTimeMs = 0;
   // Controls
-  public static CallFragment callFragment;
-  public static HudFragment hudFragment;
+  public CallFragment callFragment;
+  public HudFragment hudFragment;
   public static EglBase rootEglBase;
   //  public PercentFrameLayout localRenderLayout;F
   public PercentFrameLayout remoteRenderLayout;
   public PercentFrameLayout screenRenderLayout;
 
   //  public SurfaceViewRenderer localRender;
-  public static SurfaceViewRenderer remoteRender;
-  public static SurfaceViewRenderer screenRender;
+  public SurfaceViewRenderer remoteRender;
+  public SurfaceViewRenderer screenRender;
   private GestureDetectorCompat mDetector;
   private static boolean broadcastIsRegistered;
   private View mRoot;
+
+  ChatActivity mChatActivity;
+
+  public void showFullVideoText(boolean isShow) {
+    if (mBound)
+      mService.updateShowFullVideoText(isShow);
+  }
 
   @Override
   public void onStart() {
@@ -115,10 +121,13 @@ public class CallViewFragment extends Fragment implements
 
   }
 
+  public void releaseContextCall() {
+  }
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
+    mChatActivity = (ChatActivity) getActivity();
 //    Thread.setDefaultUncaughtExceptionHandler(
 //        new UnhandledExceptionHandler(this));
 
@@ -144,11 +153,10 @@ public class CallViewFragment extends Fragment implements
   @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-    mRoot = inflater.inflate(R.layout.activity_call, container,false);
-
+    mRoot = inflater.inflate(R.layout.activity_call, container, false);
     iceConnected = false;
 
-    scalingType = ScalingType.SCALE_ASPECT_FILL;
+    scalingType = ScalingType.SCALE_ASPECT_FIT;
 
 
 //    if (callFragment == null) {
@@ -202,14 +210,14 @@ public class CallViewFragment extends Fragment implements
     }
 
     // For command line execution run connection for <runTimeMs> and exit.
-    if (commandLineRun && runTimeMs > 0) {
-      (new Handler()).postDelayed(new Runnable() {
-        @Override
-        public void run() {
-          disconnect(false);
-        }
-      }, runTimeMs);
-    }
+//    if (commandLineRun && runTimeMs > 0) {
+//      (new Handler()).postDelayed(new Runnable() {
+//        @Override
+//        public void run() {
+//          disconnect(false);
+//        }
+//      }, runTimeMs);
+//    }
 
     // Create and audio manager that will take care of audio routing,
     // audio modes, audio device enumeration etc.
@@ -304,10 +312,13 @@ public class CallViewFragment extends Fragment implements
   @Override
   public void onCameraSwitch() {
     if (peerConnectionClient != null) {
-      boolean renderVideo = !peerConnectionClient.renderVideo;
-      peerConnectionClient.setVideoEnabled(renderVideo);
-      logAndToast(renderVideo ? "video enabled" : "video disabled");
+      peerConnectionClient.switchCamera();
     }
+//    if (peerConnectionClient != null) {
+//      boolean renderVideo = !peerConnectionClient.renderVideo;
+//      peerConnectionClient.setVideoEnabled(renderVideo);
+//      logAndToast(renderVideo ? "video enabled" : "video disabled");
+//    }
   }
 
   @Override
@@ -315,6 +326,11 @@ public class CallViewFragment extends Fragment implements
 
     boolean muted = audioManager.setMicrophoneMute(true);
     logAndToast(muted ? "muted" : "unmuted");
+  }
+
+  @Override
+  public void onBack() {
+    mChatActivity.onBackPressed();
   }
 
   @Override
@@ -342,7 +358,6 @@ public class CallViewFragment extends Fragment implements
 //    unregisterReceiver(broadcast_reciever);
 //    broadcastIsRegistered = false;
 //
-//    rootEglBase.release();
     super.onDestroy();
 
   }
@@ -377,6 +392,10 @@ public class CallViewFragment extends Fragment implements
 //      localRender.release();
 //      localRender = null;
 //    }
+    if (audioManager != null) {
+//      audioManager.close();
+      audioManager = null;
+    }
     if (remoteRender != null) {
       remoteRender.release();
       remoteRender = null;
@@ -390,11 +409,6 @@ public class CallViewFragment extends Fragment implements
     if (mDragSerfaceView != null) {
       mDragSerfaceView.release();
       mDragSerfaceView = null;
-    }
-
-    if (audioManager != null) {
-      audioManager.close();
-      audioManager = null;
     }
 
     if (appRtcClient != null && sendRemoteHangup) {
@@ -414,13 +428,13 @@ public class CallViewFragment extends Fragment implements
       peerConnectionClient2.close();
       peerConnectionClient2 = null;
     }
-
-    if (activityRunning) {
-      activityRunning = false;
-      getActivity().setResult(RESULT_OK); //okey means send stop to client!
-      getActivity().finish();
+    if (sendRemoteHangup) {
+      if (mBound)
+        mChatActivity.unbindService(mConnection);
+      mBound = false;
+      mService.stopService();
+      mChatActivity.hangoutVideoCall();
     }
-
   }
 
   // Helper functions.
@@ -542,6 +556,13 @@ public class CallViewFragment extends Fragment implements
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(getActivity().getApplication())) {
         return;
       }
+      // show video call fragment when click drag layout
+      mService.getShowFullTv().setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          mChatActivity.showCallVideoFragment();
+        }
+      });
       initDragAndMakeCall();
 //      reopenCamera();
 //      mService.setImageView(mImageView);
@@ -819,10 +840,12 @@ public class CallViewFragment extends Fragment implements
     logToast = Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT);
     logToast.show();
   }
+
   @Override
   public void onWebSocketError(String description) {
     logAndToast(description);
   }
+
   public void reportError(final String description) {
     getActivity().runOnUiThread(new Runnable() {
       @Override
@@ -866,7 +889,7 @@ public class CallViewFragment extends Fragment implements
 //                        appRtcClient.call(sdp);
 //                    } else
           {
-            appRtcClient.sendOfferSdp(sdp,(peerConnectionClient2!=null));
+            appRtcClient.sendOfferSdp(sdp, (peerConnectionClient2 != null));
           }
         }
       }
@@ -879,7 +902,7 @@ public class CallViewFragment extends Fragment implements
       @Override
       public void run() {
         if (appRtcClient != null) {
-          appRtcClient.sendLocalIceCandidate(candidate,(peerConnectionClient2!=null));
+          appRtcClient.sendLocalIceCandidate(candidate, (peerConnectionClient2 != null));
         }
       }
     });

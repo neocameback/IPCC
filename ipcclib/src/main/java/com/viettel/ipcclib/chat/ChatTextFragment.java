@@ -3,9 +3,12 @@ package com.viettel.ipcclib.chat;
 import com.viettel.ipcclib.R;
 import com.viettel.ipcclib.common.WSFragment;
 import com.viettel.ipcclib.model.MessageData;
+import com.viettel.ipcclib.util.Utils;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -46,10 +49,12 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   private ChatTextProcess mChatProcess;
   private Handler mHanlder = new Handler();
   private ChatTextVideoListner listener;
+  private ChatActivity mChatActivity;
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    mChatActivity = (ChatActivity) getActivity();
   }
 
   @Nullable
@@ -70,20 +75,32 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     mSendTv.setOnClickListener(this);
     mChatProcess = new ChatTextProcessImpl(this);
 
+    if (isConnected)
+      mTopMessageTv.setVisibility(View.GONE);
+    else mTopMessageTv.setVisibility(View.VISIBLE);
+
     v.findViewById(R.id.chat_text_back_img).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        mContext.finish();
+        mChatActivity.onBackPressed();
       }
     });
 
     v.findViewById(R.id.video_call_iv).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
+        Utils.hideKeyBoard(v);
         checkPermissions();
       }
     });
-
+    mChatActivity.registerReceiver(new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        if (mTopMessageTv != null) {
+          mTopMessageTv.setVisibility(View.GONE);
+        }
+      }
+    }, new IntentFilter("CHAT_CONNECTED"));
     return v;
   }
 
@@ -127,14 +144,14 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   public void onClick(View v) {
 //    switch (v.getId()) {
 //      case R.id.chat_text_send_tv:
-   if (v.getId() == R.id.chat_text_send_tv) {
-     String msg = mContentChatEt.getText().toString();
-        if (!msg.equals("")) {
-          sendMessage(msg);
-          appendMessage(mContentChatEt.getText().toString(), Message.Type.MINE);
-          mContentChatEt.setText("");
-          mSendTv.setSelected(false);
-        }
+    if (v.getId() == R.id.chat_text_send_tv) {
+      String msg = mContentChatEt.getText().toString();
+      if (!msg.equals("")) {
+        sendMessage(msg);
+        appendMessage(mContentChatEt.getText().toString(), Message.Type.MINE);
+        mContentChatEt.setText("");
+        mSendTv.setSelected(false);
+      }
 //        break;
     }
   }
@@ -163,30 +180,33 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     return new ChatTextFragment();
   }
 
+  boolean isConnected = false;
 
   @Override
   protected void onWSConnected() {
+    isConnected = true;
 //    if (!isContextAvailable()) return;
 //
-//    mContext.runOnUiThread(new Runnable() {
+//    mChatActivity.runOnUiThread(new Runnable() {
 //      @Override
 //      public void run() {
 //        mTopMessageTv.setVisibility(View.GONE);
 //      }
 //    });
-    mHanlder.post(new Runnable() {
-      @Override
-      public void run() {
-        mTopMessageTv.setVisibility(View.GONE);
-      }
-    });
+    mChatActivity.sendBroadcast(new Intent("CHAT_CONNECTED"));
+//    mHanlder.post(new Runnable() {
+//      @Override
+//      public void run() {
+//        mTopMessageTv.setVisibility(View.GONE);
+//      }
+//    });
   }
 
   @Override
   protected void onWSAgentTyping(final String name, final boolean typing) {
 //    if (!isContextAvailable()) return;
 //
-//    mContext.runOnUiThread(new Runnable() {
+//    mChatActivity.runOnUiThread(new Runnable() {
 //      @Override
 //      public void run() {
 //       setTyping(name, typing);
@@ -196,7 +216,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        setTyping(name, typing);
+    setTyping(name, typing);
 //      }
 //    });
   }
@@ -207,8 +227,8 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       public void run() {
         if (typing) {
           mTypingTv.setVisibility(View.VISIBLE);
-//      mTypingTv.setText(String.format(mContext.getString(R.string.someone_typing), name));
-          mTypingTv.setText(String.format(mContext.getString(R.string.someone_typing), mContext.getString(R.string.name_agent)));
+//      mTypingTv.setText(String.format(mChatActivity.getString(R.string.someone_typing), name));
+          mTypingTv.setText(String.format(mChatActivity.getString(R.string.someone_typing), mChatActivity.getString(R.string.name_agent)));
         } else {
           mTypingTv.setVisibility(View.GONE);
           mTypingTv.setText("");
@@ -221,12 +241,12 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   protected void onWSMessageReceived(final MessageData message) {
 //    if (!isContextAvailable()) return;
 //
-//    mContext.runOnUiThread(new Runnable() {
+//    mChatActivity.runOnUiThread(new Runnable() {
 //      @Override
 //      public void run() {
 //        appendMessage(message.getMessage(), Message.Type.OTHER);
 ////        setTyping(message.getUserName(), false);
-//        setTyping(mContext.getString(R.string.name_agent), false);
+//        setTyping(mChatActivity.getString(R.string.name_agent), false);
 //
 //      }
 //    });
@@ -234,9 +254,9 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        appendMessage(message.getMessage(), Message.Type.OTHER);
+    appendMessage(message.getMessage(), Message.Type.OTHER);
 //        setTyping(message.getUserName(), false);
-        setTyping(mContext.getString(R.string.name_agent), false);
+    setTyping(mChatActivity.getString(R.string.name_agent), false);
 //      }
 //    });
   }
@@ -245,17 +265,17 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   protected void onWSNotFoundAgentAvailable() {
 //    if (!isContextAvailable()) return;
 //
-//    mContext.runOnUiThread(new Runnable() {
+//    mChatActivity.runOnUiThread(new Runnable() {
 //      @Override
 //      public void run() {
-//        appendMessage(mContext.getString(R.string.no_agent_available), Message.Type.NOTICE);
+//        appendMessage(mChatActivity.getString(R.string.no_agent_available), Message.Type.NOTICE);
 //      }
 //    });
 
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        appendMessage(mContext.getString(R.string.no_agent_available), Message.Type.NOTICE);
+    appendMessage(mChatActivity.getString(R.string.no_agent_available), Message.Type.NOTICE);
 //      }
 //    });
   }
@@ -264,18 +284,19 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   protected void onWSAgentEndConversation(final String name) {
 //    if (!isContextAvailable()) return;
 //
-//    mContext.runOnUiThread(new Runnable() {
+//    mChatActivity.runOnUiThread(new Runnable() {
 //      @Override
 //      public void run() {
-////        appendMessage(String.format(mContext.getString(R.string.end_chat), name), Message.Type.NOTICE);
-//        appendMessage(mContext.getString(R.string.chat_ended), Message.Type.NOTICE);
+////        appendMessage(String.format(mChatActivity.getString(R.string.end_chat), name), Message.Type.NOTICE);
+//        appendMessage(mChatActivity.getString(R.string.chat_ended), Message.Type.NOTICE);
 //      }
 //    });
 
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
-        appendMessage(mContext.getString(R.string.chat_ended), Message.Type.NOTICE);
+    appendMessage(mChatActivity.getString(R.string.chat_ended), Message.Type.NOTICE);
+//    mChatActivity.disconnectVideoCall();
 //      }
 //    });
   }
@@ -284,11 +305,11 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   protected void onWSAgentJoinConversation(final String name) {
 //    if (!isContextAvailable()) return;
 //
-//    mContext.runOnUiThread(new Runnable() {
+//    mChatActivity.runOnUiThread(new Runnable() {
 //      @Override
 //      public void run() {
-////        appendMessage(String.format(mContext.getString(R.string.format_join_chat), name), Message.Type.NOTICE);
-//        String msg = String.format(mContext.getString(R.string.format_join_chat), mContext.getString(R.string.name_agent));
+////        appendMessage(String.format(mChatActivity.getString(R.string.format_join_chat), name), Message.Type.NOTICE);
+//        String msg = String.format(mChatActivity.getString(R.string.format_join_chat), mChatActivity.getString(R.string.name_agent));
 //        appendMessage(Html.fromHtml(msg), Message.Type.NOTICE);
 //      }
 //    });
@@ -296,10 +317,15 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     mHanlder.post(new Runnable() {
       @Override
       public void run() {
-        String msg = String.format(mContext.getString(R.string.format_join_chat), mContext.getString(R.string.name_agent));
+        String msg = String.format(mChatActivity.getString(R.string.format_join_chat), mChatActivity.getString(R.string.name_agent));
         appendMessage(Html.fromHtml(msg), Message.Type.NOTICE);
       }
     });
+  }
+
+  @Override
+  protected void onEndVideoCall() {
+//    mChatActivity.hangoutVideoCall();
   }
 
   @Override
@@ -307,9 +333,10 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     mHanlder.post(new Runnable() {
       @Override
       public void run() {
-        if (mContext == null) return;
+        if (mChatActivity == null) return;
         mTopMessageTv.setText(R.string.channel_error_title);
-        mTopMessageTv.setTextColor(ContextCompat.getColor(mContext, R.color.error));      }
+        mTopMessageTv.setTextColor(ContextCompat.getColor(mChatActivity, R.color.error));
+      }
     });
   }
 
@@ -343,7 +370,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       }
 
       if (missingPermissions.isEmpty()) {
-//        startActivity(new Intent(mContext, CallActivity.class));
+//        startActivity(new Intent(mChatActivity, CallActivity.class));
         if (listener != null) {
           listener.onCallVideoClicked();
         }
@@ -411,7 +438,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
   public void onAttach(Context context) {
     super.onAttach(context);
     if (context instanceof ChatTextVideoListner) {
-      listener =(ChatTextVideoListner) context;
-     }
+      listener = (ChatTextVideoListner) context;
+    }
   }
 }
