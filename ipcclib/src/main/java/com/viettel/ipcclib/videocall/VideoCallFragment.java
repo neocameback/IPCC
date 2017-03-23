@@ -68,8 +68,8 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
 import static com.viettel.ipcclib.RTCConnection.isWSSUrl;
 import static com.viettel.ipcclib.RTCConnection.isWSUrl;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionParameters;
-import static com.viettel.ipcclib.common.WSFragment.roomConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.peerConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.roomConnectionParameters;
 
 ;
 

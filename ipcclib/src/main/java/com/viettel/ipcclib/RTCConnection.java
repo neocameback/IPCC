@@ -1,6 +1,5 @@
 package com.viettel.ipcclib;
 
-import com.viettel.ipcclib.common.WSFragment;
 import com.viettel.ipcclib.util.LooperExecutor;
 
 import org.webrtc.IceCandidate;
@@ -24,9 +23,10 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import static com.viettel.ipcclib.common.WSFragment.appRtcClient;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient2;
+import static com.viettel.ipcclib.RtcClient.appRtcClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient2;
+import static com.viettel.ipcclib.RtcClient.signalingParam;
 
 
 public abstract class RTCConnection extends FragmentActivity implements
@@ -136,7 +136,7 @@ public abstract class RTCConnection extends FragmentActivity implements
 
     private void onConnectedToRoomInternal(final AppRTCClient.SignalingParameters params) {
         final long delta = System.currentTimeMillis() - callStartedTimeMs;
-        WSFragment.signalingParam = params;
+        signalingParam = params;
     }
 
     public void onChannelError(final String description){

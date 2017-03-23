@@ -35,6 +35,13 @@ import java.util.Date;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
+import static com.viettel.ipcclib.RtcClient.appRtcClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient2;
+import static com.viettel.ipcclib.RtcClient.rootEglBase;
+import static com.viettel.ipcclib.RtcClient.roomConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.signalingParam;
+import static com.viettel.ipcclib.RtcClient.peerConnectionParameters;
 
 public class ChatTextFragment extends WSFragment implements View.OnClickListener, TextWatcher, ConversationView {
   EditText mContentChatEt;
@@ -106,6 +113,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       }
     });
     mChatActivity.registerReceiver(mChatConnectedReceiver, new IntentFilter("CHAT_CONNECTED"));
+    setConnected(false);
     return v;
   }
 
@@ -199,7 +207,13 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //      }
 //    });
     mChatActivity.sendBroadcast(new Intent("CHAT_CONNECTED"));
-    setConnected(true);
+    mHanlder.post(new Runnable() {
+      @Override
+      public void run() {
+        setConnected(true);
+      }
+    });
+
 //    mHanlder.post(new Runnable() {
 //      @Override
 //      public void run() {
@@ -346,8 +360,14 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       @Override
       public void run() {
 //        Toast.makeText(mChatActivity, R.string.end_video, Toast.LENGTH_SHORT).show();
+       mChatActivity.hangoutVideoCall();
       }
     });
+  }
+
+  @Override
+  protected void onWSReciveCall() {
+    mChatActivity.onWSReciveCall();
   }
 
   @Override
@@ -485,6 +505,11 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     if (peerConnectionClient2 != null) {
       peerConnectionClient2.close();
       peerConnectionClient2 = null;
+    }
+
+    if (rootEglBase != null) {
+      rootEglBase.release();
+      rootEglBase = null;
     }
 
     roomConnectionParameters = null;

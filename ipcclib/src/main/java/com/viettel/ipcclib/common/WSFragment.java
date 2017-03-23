@@ -32,6 +32,11 @@ import android.widget.Toast;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.viettel.ipcclib.RtcClient.appRtcClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient2;
+import static com.viettel.ipcclib.RtcClient.roomConnectionParameters;
+
 /**
  * Created by Macbook on 3/17/17.
  */
@@ -47,15 +52,15 @@ public abstract class WSFragment extends Fragment {
   public boolean iceConnected;
   private BroadcastReceiver bringToFrontBroadcastReceiver;
 
-  public static AppRTCClient.RoomConnectionParameters roomConnectionParameters;
-  public static WebSocketRTCClient appRtcClient;
+//  public static AppRTCClient.RoomConnectionParameters roomConnectionParameters;
+//  public static WebSocketRTCClient appRtcClient;
   private long callStartedTimeMs;
 
-  public static PeerConnectionClient peerConnectionClient = null;
-  public static PeerConnectionClient peerConnectionClient2 = null;
-
-  public static PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
-  public static AppRTCClient.SignalingParameters signalingParam;
+//  public static PeerConnectionClient peerConnectionClient = null;
+//  public static PeerConnectionClient peerConnectionClient2 = null;
+//
+//  public static PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
+//  public static AppRTCClient.SignalingParameters signalingParam;
   protected Activity mContext;
   protected int serviceId;
   private String domain;
@@ -435,6 +440,7 @@ public abstract class WSFragment extends Fragment {
 //      newIntent.putExtra("keep", true);
 //      newIntent.putExtras(getIntent());
 //      startActivityForResult(newIntent, CONNECTION_REQUEST);
+      onWSReciveCall();
     }
 
 //    public Intent getIntent() {
@@ -618,6 +624,8 @@ public abstract class WSFragment extends Fragment {
       onWSAgentJoinConversation(fullName);
     }
   };
+
+  protected abstract void onWSReciveCall();
 
   protected abstract void onEndVideoCall();
 

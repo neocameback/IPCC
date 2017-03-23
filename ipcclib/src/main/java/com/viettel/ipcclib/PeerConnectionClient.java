@@ -124,7 +124,7 @@ public class PeerConnectionClient {
  // AppRTCClient.RoomConnectionParameters roomConnectionParameters;
   private boolean isInitiator;
   private SessionDescription localSdp; // either offer or answer SDP
-  private static MediaStream mediaStream;
+  private MediaStream mediaStream;
   private int numberOfCameras;
   private VideoCapturerAndroid videoCapturer;
   // enableVideo is set to true if video should be rendered and sent.
@@ -134,7 +134,7 @@ public class PeerConnectionClient {
   private VideoTrack remoteScreenTrack;
   private boolean isScreenSharingConnection;
   private EglBase.Context renderEGLContext;
-  private static MediaStream mRemoteMediaStream;
+//  private static MediaStream mRemoteMediaStream;
 
   public boolean isScreenSharingConnection() {
     return isScreenSharingConnection;
@@ -1022,22 +1022,19 @@ public class PeerConnectionClient {
     videoCapturer.onOutputFormatRequest(width, height, framerate);
   }
 
-  public MediaStream getRemoteMediaStream() {
-    return mRemoteMediaStream;
-  }
 
   public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
     pcObserver.replaceRemoteRender(remoteRender);
-    if (mRemoteMediaStream != null) {
-      pcObserver.onAddStream(mRemoteMediaStream);
-    }
+//    if (mRemoteMediaStream != null) {
+//      pcObserver.onAddStream(mRemoteMediaStream);
+//    }
   }
 
   public void replaceScreenRender(VideoRenderer.Callbacks screenRender) {
     pcObserver.replaceScreenRender(screenRender);
-    if (mRemoteMediaStream != null) {
-      pcObserver.onAddStream(mRemoteMediaStream);
-    }
+//    if (mRemoteMediaStream != null) {
+//      pcObserver.onAddStream(mRemoteMediaStream);
+//    }
   }
 
   // Implementation detail: observe ICE & stream changes and react accordingly.
@@ -1050,6 +1047,11 @@ public class PeerConnectionClient {
           events.onIceCandidate(candidate);
         }
       });
+    }
+
+    @Override
+    public void onIceCandidatesRemoved(IceCandidate[] iceCandidates) {
+      Log.e("@@@@" , "onIceCandidatesRemoved " + iceCandidates.length);
     }
 
     @Override
@@ -1095,7 +1097,7 @@ public class PeerConnectionClient {
 
     @Override
     public void onAddStream(final MediaStream stream){
-      mRemoteMediaStream = stream;
+//      mRemoteMediaStream = stream;
       executor.execute(new Runnable() {
         @Override
         public void run() {
@@ -1111,24 +1113,31 @@ public class PeerConnectionClient {
             return;
           }
           if (!isScreenSharingConnection && stream.videoTracks.size() == 1) {
-            if (remoteVideoTrack != null) {
-              remoteVideoTrack.dispose();
-            }
+//            if (remoteVideoTrack != null) {
+////              remoteVideoTrack.removeRenderer(mRemoteVideoRender);
+//              remoteVideoTrack.dispose();
+//            }
             remoteVideoTrack = stream.videoTracks.get(0);
             remoteVideoTrack.setEnabled(renderVideo);
-            remoteVideoTrack.addRenderer(new VideoRenderer(remoteRender));
+            mRemoteVideoRender = new VideoRenderer(remoteRender);
+            remoteVideoTrack.addRenderer(mRemoteVideoRender);
           }
           if (isScreenSharingConnection && stream.videoTracks.size() == 1) {
-            if (remoteScreenTrack != null) {
-              remoteScreenTrack.dispose();
-            }
+//            if (remoteScreenTrack != null) {
+////              remoteVideoTrack.removeRenderer(mScreenVideoRender);
+//              remoteScreenTrack.dispose();
+//            }
             remoteScreenTrack = stream.videoTracks.get(0);
             remoteScreenTrack.setEnabled(true);
-            remoteScreenTrack.addRenderer(new VideoRenderer(screenRender));
+            mScreenVideoRender = new VideoRenderer(screenRender);
+            remoteScreenTrack.addRenderer(mScreenVideoRender);
           }
         }
       });
     }
+
+    private VideoRenderer mRemoteVideoRender;
+    private VideoRenderer mScreenVideoRender;
 
     public void replaceRemoteRender(VideoRenderer.Callbacks remoteRender) {
       if (PeerConnectionClient.this.remoteRender != null) {

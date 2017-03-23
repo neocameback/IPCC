@@ -2,14 +2,15 @@ package com.viettel.ipcclib.chat;
 
 import com.viettel.ipcclib.CallViewFragment;
 import com.viettel.ipcclib.R;
+import com.viettel.ipcclib.RtcClient;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
+
+import static com.viettel.ipcclib.RtcClient.appRtcClient;
 
 
 public class ChatActivity extends FragmentActivity implements ChatTextVideoListner {
@@ -18,12 +19,12 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
   private static final String SERVICE_ID = "SERVICE_ID";
   private CallViewFragment mCallViewFragment;
   private ChatTextFragment mChatTextFragment;
-  private BroadcastReceiver mChatConnectReceiver = new BroadcastReceiver() {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      hangoutVideoCall();
-    }
-  };
+//  private BroadcastReceiver mChatConnectReceiver = new BroadcastReceiver() {
+//    @Override
+//    public void onReceive(Context context, Intent intent) {
+//      hangoutVideoCall();
+//    }
+//  };
 
   public static void start(Context context, String endPoint, String domain, int serviceId) {
     Intent intent = new Intent(context, ChatActivity.class);
@@ -32,6 +33,14 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
     intent.putExtra(SERVICE_ID, serviceId);
 
     context.startActivity(intent);
+    RtcClient.rootEglBase = null;
+    RtcClient.peerConnectionParameters = null;
+    RtcClient.signalingParam = null;
+    appRtcClient = null;
+    RtcClient.audioManager = null;
+    RtcClient.peerConnectionClient = null;
+    RtcClient.peerConnectionClient2 = null;
+    RtcClient.roomConnectionParameters = null;
   }
 
   @Override
@@ -55,21 +64,16 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
     getSupportFragmentManager().beginTransaction().replace(R.id.chat_container,
         mChatTextFragment
     ).commit();
-    registerReceiver(mChatConnectReceiver, new IntentFilter("finish_video_call"));
+//    registerReceiver(mChatConnectReceiver, new IntentFilter("finish_video_call"));
   }
 
   @Override
   public void onCallVideoClicked() {
     if (mCallViewFragment == null) {
-      mCallViewFragment = new CallViewFragment();
-      getSupportFragmentManager().beginTransaction().add(R.id.chat_container, mCallViewFragment)
-          .commit();
-      mCallViewFragment.showFullVideoText(false);
+      appRtcClient.makeCall();
     } else {
       if (mCallViewFragment.isHidden()) {
-        getSupportFragmentManager().beginTransaction()
-            .show(mCallViewFragment).commit();
-        mCallViewFragment.showFullVideoText(false);
+        showCallVideoFragment();
       } else {
         getSupportFragmentManager().beginTransaction()
             .hide(mCallViewFragment).commit();
@@ -81,18 +85,16 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
 
   @Override
   public void onBackPressed() {
-    if (mCallViewFragment != null && !mCallViewFragment.isHidden()) {
-      getSupportFragmentManager().beginTransaction()
-          .hide(mCallViewFragment).commit();
-      getSupportFragmentManager().beginTransaction().show(mChatTextFragment).commit();
-      mCallViewFragment.showFullVideoText(true);
-    } else {
-      if (mCallViewFragment != null) {
-//        mCallViewFragment.onCallHangUp();
-//        mCallViewFragment.releaseContextCall();
+    if (mCallViewFragment != null) {
+      if (!mCallViewFragment.isHidden()) {
+        getSupportFragmentManager().beginTransaction()
+            .hide(mCallViewFragment).commit();
+        getSupportFragmentManager().beginTransaction().show(mChatTextFragment).commit();
+        mCallViewFragment.showFullVideoText(true);
+        return;
       }
-      super.onBackPressed();
     }
+    super.onBackPressed();
   }
 
   public void showCallVideoFragment() {
@@ -102,9 +104,22 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
     mCallViewFragment.showFullVideoText(false);
   }
 
+  private void addCallVideoFragment() {
+    mCallViewFragment = new CallViewFragment();
+    getSupportFragmentManager().beginTransaction()
+        .add(R.id.chat_container, mCallViewFragment)
+//          .addToBackStack(CallViewFragment.class.getSimpleName())
+        .commit();
+    mCallViewFragment.showFullVideoText(false);
+  }
+
   public void hangoutVideoCall() {
     if (mCallViewFragment != null) {
-      getSupportFragmentManager().beginTransaction().remove(mCallViewFragment).commit();
+      try {
+        getSupportFragmentManager().beginTransaction().remove(mCallViewFragment).commit();
+      } catch (IllegalStateException ex){ex.printStackTrace();}
+
+//      getSupportFragmentManager().popBackStack();
       mCallViewFragment = null;
     }
   }
@@ -117,6 +132,21 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    unregisterReceiver(mChatConnectReceiver);
+//    unregisterReceiver(mChatConnectReceiver);
+//    android.os.Process.killProcess(android.os.Process.myPid());
+    System.gc();
+    System.gc();
+
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    //No call for super(). Bug on API Level > 11.
+//    outState.putString("WORKAROUND_FOR_BUG_19917_KEY", "WORKAROUND_FOR_BUG_19917_VALUE");
+//    super.onSaveInstanceState(outState);
+  }
+
+  public void onWSReciveCall() {
+    addCallVideoFragment();
   }
 }

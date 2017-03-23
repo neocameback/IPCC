@@ -40,11 +40,11 @@ import android.view.Window;
 import android.view.WindowManager.LayoutParams;
 import android.widget.Toast;
 
-import static com.viettel.ipcclib.common.WSFragment.appRtcClient;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient2;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionParameters;
-import static com.viettel.ipcclib.common.WSFragment.roomConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.appRtcClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient2;
+import static com.viettel.ipcclib.RtcClient.peerConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.roomConnectionParameters;
 
 
 /**

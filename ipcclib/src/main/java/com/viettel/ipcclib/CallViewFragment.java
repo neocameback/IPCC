@@ -30,7 +30,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -47,11 +46,14 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import static com.viettel.ipcclib.RTCConnection.STAT_CALLBACK_PERIOD;
-import static com.viettel.ipcclib.common.WSFragment.appRtcClient;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionClient2;
-import static com.viettel.ipcclib.common.WSFragment.peerConnectionParameters;
-import static com.viettel.ipcclib.common.WSFragment.roomConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.appRtcClient;
+import static com.viettel.ipcclib.RtcClient.audioManager;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient;
+import static com.viettel.ipcclib.RtcClient.peerConnectionClient2;
+import static com.viettel.ipcclib.RtcClient.peerConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.roomConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.rootEglBase;
+import static com.viettel.ipcclib.RtcClient.sharedPref;
 
 
 /**
@@ -61,21 +63,17 @@ import static com.viettel.ipcclib.common.WSFragment.roomConnectionParameters;
 public class CallViewFragment extends Fragment implements
     CallFragment.OnCallEvents,
     PeerConnectionClient.PeerConnectionEvents,
-    WebSocketChannelClient.WebSocketChannelEvents
-    // AppRTCClient.SignalingEvents,
-    //    PeerConnectionClient.PeerConnectionEvents,
-    //     WebSocketChannelClient.WebSocketChannelEvents
-{
+    WebSocketChannelClient.WebSocketChannelEvents {
 
   public String from = "";
   private static final String TAG = "RTCConnection";
   public boolean iceConnected;
   public boolean isError;
-  public static SharedPreferences sharedPref;
+//  public static SharedPreferences sharedPref;
   public int runTimeMs;
   public boolean activityRunning;
 
-  public static AppRTCAudioManager audioManager = null;
+//  public static AppRTCAudioManager audioManager = null;
   public boolean callControlFragmentVisible = true;
 
   // Screen video screen position
@@ -85,7 +83,7 @@ public class CallViewFragment extends Fragment implements
   private static final int SCREEN_HEIGHT = 100;
   private Intent intent = null;
   private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 0;
-  // private AppRTCClient appRtcClient;
+
   private ScalingType scalingType;
   private Toast logToast;
   private boolean commandLineRun;
@@ -94,7 +92,7 @@ public class CallViewFragment extends Fragment implements
   // Controls
   public CallFragment callFragment;
   public HudFragment hudFragment;
-  public static EglBase rootEglBase;
+//  public static EglBase rootEglBase;
   //  public PercentFrameLayout localRenderLayout;F
   public PercentFrameLayout remoteRenderLayout;
   public PercentFrameLayout screenRenderLayout;
@@ -103,7 +101,7 @@ public class CallViewFragment extends Fragment implements
   public SurfaceViewRenderer remoteRender;
   public SurfaceViewRenderer screenRender;
   private GestureDetectorCompat mDetector;
-  private static boolean broadcastIsRegistered;
+  private boolean broadcastIsRegistered;
   private View mRoot;
 
   ChatActivity mChatActivity;
@@ -349,18 +347,24 @@ public class CallViewFragment extends Fragment implements
   public void onDestroy() {
 //    disconnect(sendDisconnectToPeer);
 
-    unbindSerice();
+    unbindDragSerice();
     getActivity().unregisterReceiver(broadcast_reciever);
     broadcastIsRegistered = false;
     activityRunning = false;
-    audioManager.close();
+//    if (audioManager != null) {
+//      audioManager.close();
+//    }
+//    disconnect(true);
     super.onDestroy();
   }
 
   // CallFragment.OnCallEvents interface implementation.
   @Override
   public void onCallHangUp() {
-    disconnect(true);
+//    disconnect(true);
+    appRtcClient.sendEndVideoCall();
+    if (mChatActivity != null && !mChatActivity.isFinishing())
+      mChatActivity.hangoutVideoCall();
   }
 
   public void onChannelError(String description) {
@@ -406,31 +410,34 @@ public class CallViewFragment extends Fragment implements
       mDragSerfaceView = null;
     }
 
-    if (appRtcClient != null && sendRemoteHangup) {
-      appRtcClient.sendDisconnectToPeer(); //send bye message to peer only when initiator
-      sendDisconnectToPeer = false;
-       appRtcClient = null;
-    }
+//    if (appRtcClient != null && sendRemoteHangup) {
+//      appRtcClient.sendEndVideoCall(); //send bye message to peer only when initiator
+//      sendDisconnectToPeer = false;
+//      appRtcClient = null;
+//    }
 
     //DON'T DO THAT if(appRtcClient != null) appRtcClient = null;
 
-    if (peerConnectionClient != null) {
-      peerConnectionClient.close();
-      peerConnectionClient = null;
-    }
+//    if (peerConnectionClient != null) {
+//      peerConnectionClient.close();
+//      peerConnectionClient = null;
+//    }
 
-    if (peerConnectionClient2 != null) {
-      peerConnectionClient2.close();
-      peerConnectionClient2 = null;
+//    if (peerConnectionClient2 != null) {
+//      peerConnectionClient2.close();
+//      peerConnectionClient2 = null;
+//    }
+    if (rootEglBase != null) {
+      rootEglBase.release();
+      rootEglBase = null;
     }
-    rootEglBase.release();
     if (sendRemoteHangup) {
-      unbindSerice();
+      unbindDragSerice();
       mChatActivity.hangoutVideoCall();
     }
   }
 
-  private void unbindSerice() {
+  private void unbindDragSerice() {
     if (mBound)
       mChatActivity.unbindService(mConnection);
     mBound = false;
@@ -534,7 +541,7 @@ public class CallViewFragment extends Fragment implements
   // TODO drag
   private DraggableService mService;
   boolean mBound = false;
-  private static SurfaceViewRenderer mDragSerfaceView;
+  private SurfaceViewRenderer mDragSerfaceView;
 
 
   /**
@@ -599,7 +606,7 @@ public class CallViewFragment extends Fragment implements
 
   private void setupPeerConnection() {
     // setup video
-    if (peerConnectionClient == null) {
+//    if (peerConnectionClient == null) {
       mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
       initPeerConnectionParameters();
       peerConnectionClient = PeerConnectionClient.getInstance(true);
@@ -611,8 +618,24 @@ public class CallViewFragment extends Fragment implements
           roomConnectionParameters.initiator);
       logAndToast("Creating OFFER...");
       peerConnectionClient.createOffer();
-      appRtcClient.makeCall();
-    } else {
+//      long current  = System.currentTimeMillis();
+//      long time = current;
+//      while (time - current < 2000) {
+//        time = System.currentTimeMillis();
+//      }
+
+//      appRtcClient.makeCall();
+//    } else {
+//      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+//      initPeerConnectionParameters();
+//      peerConnectionClient = PeerConnectionClient.getInstance(true);
+//      peerConnectionClient.createPeerConnectionFactory(
+//          getActivity(), peerConnectionParameters, this);
+//
+//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+//          mDragSerfaceView, remoteRender, screenRender,
+//          roomConnectionParameters.initiator);
+
 //      peerConnectionClient.setScreenSharingConnection(true);
 //      peerConnectionClient.createPeerConnectionFactory(
 //          CallActivity.this, peerConnectionParameters, CallActivity.this);
@@ -620,11 +643,11 @@ public class CallViewFragment extends Fragment implements
 //          mDragSerfaceView, remoteRender, screenRender,
 //          roomConnectionParameters.initiator);
 
-      peerConnectionClient.replaceRemoteRender(remoteRender);
-      peerConnectionClient.replaceScreenRender(screenRender);
-
-      remoteRender.requestLayout();
-      screenRender.requestLayout();
+//      peerConnectionClient.replaceRemoteRender(remoteRender);
+//      peerConnectionClient.replaceScreenRender(screenRender);
+//
+//      remoteRender.requestLayout();
+//      screenRender.requestLayout();
 
 //      screenRenderLayout.removeView(screenRender);
       //  screenRender.release();
@@ -649,7 +672,7 @@ public class CallViewFragment extends Fragment implements
 //      screenRender.postInvalidate();
 
 
-    }
+//    }
 //    updateVideoView();
     // Create offer. Offer SDP will be sent to answering client in
     // PeerConnectionEvents.onLocalDescription event.

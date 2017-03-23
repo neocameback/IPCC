@@ -25,6 +25,8 @@ import java.util.List;
  */
 public interface AppRTCClient {
 
+  void sendEndVideoCall();
+
   /**
    * Struct holding the connection parameters of an AppRTC room.
    */

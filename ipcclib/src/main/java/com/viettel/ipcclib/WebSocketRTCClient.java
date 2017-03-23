@@ -37,6 +37,7 @@ import android.util.Log;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.viettel.ipcclib.constants.ConversationId.cancelVideoCall;
 import static com.viettel.ipcclib.constants.ConversationId.endVideoCall;
 import static com.viettel.ipcclib.constants.ConversationId.existingParticipants;
 import static com.viettel.ipcclib.constants.ConversationId.iceCandidate;
@@ -72,18 +73,6 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
     this.domain = domain;
     return this;
   }
-
-  public enum VideoState {
-    WAITING, JOINED, LIVE, ERROR, END
-  }
-
-  ;
-
-//  private enum MessageType {
-//    MESSAGE, LEAVE
-//  }
-
-  ;
 
   private final LooperExecutor executor;
   private boolean initiator;
@@ -354,8 +343,8 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
       return;
     }
     switch (idM) {
-      case endVideoCall:
-        mVideoState = endVideoCall;
+      case cancelVideoCall:
+        mVideoState = cancelVideoCall;
         if (socketState == WebSocketChannelClient.WebSocketConnectionState.NEW) {
           signalingEvents.onNoAgentResponse();
         } else {
@@ -424,6 +413,18 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
 //              signalingEvents.onIncomingScreenCall(json);
         break;
     }
+  }
+
+  @Override
+  public void sendEndVideoCall() {
+    mVideoState = endVideoCall;
+
+    executor.execute(new Runnable() {
+      @Override
+      public void run() {
+        disconnectFromRoomInternal();
+      }
+    });
   }
 
   // --------------------------------------------------------------------
@@ -806,9 +807,9 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
   // Send Ice candidate to the other participant.
   @Override
   public void sendLocalIceCandidate(final IceCandidate candidate, final boolean isScreenSharing) {
-//    if (mVideoState == endVideoCall || mVideoState == existingParticipants || mVideoState == cancelVideoCall) {
-//      return;
-//    }
+    if (mVideoState == endVideoCall || mVideoState == existingParticipants || mVideoState == cancelVideoCall) {
+      return;
+    }
     executor.execute(new Runnable() {
       @Override
       public void run() {
@@ -1004,7 +1005,7 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
       public void run() {
         MessageData data = new MessageData()
             .setVisitorId(userId)
-            .setServiceId("-1")
+            .setServiceId(serviceId + "")
             .setConversationId(conversationId);
 
         Message message = new Message()
