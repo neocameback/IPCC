@@ -69,11 +69,11 @@ public class CallViewFragment extends Fragment implements
   private static final String TAG = "RTCConnection";
   public boolean iceConnected;
   public boolean isError;
-//  public static SharedPreferences sharedPref;
+  //  public static SharedPreferences sharedPref;
   public int runTimeMs;
   public boolean activityRunning;
 
-//  public static AppRTCAudioManager audioManager = null;
+  //  public static AppRTCAudioManager audioManager = null;
   public boolean callControlFragmentVisible = true;
 
   // Screen video screen position
@@ -92,7 +92,7 @@ public class CallViewFragment extends Fragment implements
   // Controls
   public CallFragment callFragment;
   public HudFragment hudFragment;
-//  public static EglBase rootEglBase;
+  //  public static EglBase rootEglBase;
   //  public PercentFrameLayout localRenderLayout;F
   public PercentFrameLayout remoteRenderLayout;
   public PercentFrameLayout screenRenderLayout;
@@ -125,6 +125,7 @@ public class CallViewFragment extends Fragment implements
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    mIsInit = false;
     mChatActivity = (ChatActivity) getActivity();
 //    Thread.setDefaultUncaughtExceptionHandler(
 //        new UnhandledExceptionHandler(this));
@@ -363,8 +364,12 @@ public class CallViewFragment extends Fragment implements
   public void onCallHangUp() {
 //    disconnect(true);
     appRtcClient.sendEndVideoCall();
-    if (mChatActivity != null && !mChatActivity.isFinishing())
-      mChatActivity.hangoutVideoCall();
+//    if (mChatActivity != null && !mChatActivity.isFinishing())
+//      mChatActivity.hangoutVideoCall();
+    disconnect(true);
+//    if (mChatActivity != null) {
+//      mChatActivity.hangoutVideoCall();
+//    }
   }
 
   public void onChannelError(String description) {
@@ -418,22 +423,22 @@ public class CallViewFragment extends Fragment implements
 
     //DON'T DO THAT if(appRtcClient != null) appRtcClient = null;
 
-//    if (peerConnectionClient != null) {
-//      peerConnectionClient.close();
-//      peerConnectionClient = null;
-//    }
+    if (peerConnectionClient != null) {
+      peerConnectionClient.close();
+      peerConnectionClient = null;
+    }
 
-//    if (peerConnectionClient2 != null) {
-//      peerConnectionClient2.close();
-//      peerConnectionClient2 = null;
-//    }
+    if (peerConnectionClient2 != null) {
+      peerConnectionClient2.close();
+      peerConnectionClient2 = null;
+    }
     if (rootEglBase != null) {
       rootEglBase.release();
       rootEglBase = null;
     }
     if (sendRemoteHangup) {
       unbindDragSerice();
-      mChatActivity.hangoutVideoCall();
+//      mChatActivity.hangoutVideoCall();
     }
   }
 
@@ -604,78 +609,25 @@ public class CallViewFragment extends Fragment implements
     // PeerConnectionEvents.onLocalDescription event.
   }
 
+  private static boolean mIsInit = false;
+
   private void setupPeerConnection() {
-    // setup video
-//    if (peerConnectionClient == null) {
-      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
-      initPeerConnectionParameters();
-      peerConnectionClient = PeerConnectionClient.getInstance(true);
-      peerConnectionClient.createPeerConnectionFactory(
-          getActivity(), peerConnectionParameters, this);
+    if (mIsInit) {
+      return;
+    }
+    mIsInit = true;
+    mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
+    initPeerConnectionParameters();
+    peerConnectionClient = PeerConnectionClient.getInstance(true);
+    peerConnectionClient.createPeerConnectionFactory(
+        getActivity(), peerConnectionParameters, this);
 
-      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-          mDragSerfaceView, remoteRender, screenRender,
-          roomConnectionParameters.initiator);
-      logAndToast("Creating OFFER...");
-      peerConnectionClient.createOffer();
-//      long current  = System.currentTimeMillis();
-//      long time = current;
-//      while (time - current < 2000) {
-//        time = System.currentTimeMillis();
-//      }
+    peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
+        mDragSerfaceView, remoteRender, screenRender,
+        roomConnectionParameters.initiator);
+    logAndToast("Creating OFFER...");
+    peerConnectionClient.createOffer();
 
-//      appRtcClient.makeCall();
-//    } else {
-//      mDragSerfaceView.init(rootEglBase.getEglBaseContext(), null);
-//      initPeerConnectionParameters();
-//      peerConnectionClient = PeerConnectionClient.getInstance(true);
-//      peerConnectionClient.createPeerConnectionFactory(
-//          getActivity(), peerConnectionParameters, this);
-//
-//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-//          mDragSerfaceView, remoteRender, screenRender,
-//          roomConnectionParameters.initiator);
-
-//      peerConnectionClient.setScreenSharingConnection(true);
-//      peerConnectionClient.createPeerConnectionFactory(
-//          CallActivity.this, peerConnectionParameters, CallActivity.this);
-//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-//          mDragSerfaceView, remoteRender, screenRender,
-//          roomConnectionParameters.initiator);
-
-//      peerConnectionClient.replaceRemoteRender(remoteRender);
-//      peerConnectionClient.replaceScreenRender(screenRender);
-//
-//      remoteRender.requestLayout();
-//      screenRender.requestLayout();
-
-//      screenRenderLayout.removeView(screenRender);
-      //  screenRender.release();
-      // screenRenderLayout.add(screenRender);
-//      screenRenderLayout.addView(screenRender, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-//      updateVideoView();
-
-//      peerConnectionClient = PeerConnectionClient.getInstance(false);
-//      peerConnectionClient.setPeerConnectionParameters(peerConnectionParameters);
-////      peerConnectionClient.createPeerConnectionFactory(
-////          CallActivity.this, peerConnectionParameters, CallActivity.this);
-//      iceConnected = true;
-//      peerConnectionClient.createPeerConnectionFactoryScreen(this);
-//      peerConnectionClient.createPeerConnection(rootEglBase.getEglBaseContext(),
-//          mDragSerfaceView, remoteRender, screenRender, false);
-//
-
-//      peerConnectionClient.setVideoEnabled(true);
-//      peerConnectionClient.setScreenRender(screenRender);
-//      peerConnectionClient.setScreenSharingConnection(true);
-//      peerConnectionClient.startVideoSource();
-//      screenRender.postInvalidate();
-
-
-//    }
-//    updateVideoView();
-    // Create offer. Offer SDP will be sent to answering client in
-    // PeerConnectionEvents.onLocalDescription event.
   }
 
   private void initPeerConnectionParameters() {

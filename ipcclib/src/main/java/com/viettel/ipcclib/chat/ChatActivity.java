@@ -67,10 +67,17 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
 //    registerReceiver(mChatConnectReceiver, new IntentFilter("finish_video_call"));
   }
 
+  private boolean makingCall = false;
   @Override
   public void onCallVideoClicked() {
+    if (makingCall) {
+      return;
+    }
+
     if (mCallViewFragment == null) {
+      mCallViewFragment = new CallViewFragment();
       appRtcClient.makeCall();
+      makingCall = true;
     } else {
       if (mCallViewFragment.isHidden()) {
         showCallVideoFragment();
@@ -105,7 +112,6 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
   }
 
   private void addCallVideoFragment() {
-    mCallViewFragment = new CallViewFragment();
     getSupportFragmentManager().beginTransaction()
         .add(R.id.chat_container, mCallViewFragment)
 //          .addToBackStack(CallViewFragment.class.getSimpleName())
@@ -114,9 +120,11 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
   }
 
   public void hangoutVideoCall() {
+    makingCall = false;
     if (mCallViewFragment != null) {
       try {
-        getSupportFragmentManager().beginTransaction().remove(mCallViewFragment).commit();
+//        mCallViewFragment.onCallHangUp();
+        getSupportFragmentManager().beginTransaction().remove(mCallViewFragment).commitAllowingStateLoss();
       } catch (IllegalStateException ex){ex.printStackTrace();}
 
 //      getSupportFragmentManager().popBackStack();
@@ -147,6 +155,7 @@ public class ChatActivity extends FragmentActivity implements ChatTextVideoListn
   }
 
   public void onWSReciveCall() {
+    makingCall = false;
     addCallVideoFragment();
   }
 }

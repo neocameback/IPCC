@@ -601,8 +601,8 @@ public class CallActivity extends RTCConnection implements
 //          mDragSerfaceView, remoteRender, screenRender,
 //          roomConnectionParameters.initiator);
 
-      peerConnectionClient.replaceRemoteRender(remoteRender);
-      peerConnectionClient.replaceScreenRender(screenRender);
+//      peerConnectionClient.replaceRemoteRender(remoteRender);
+//      peerConnectionClient.replaceScreenRender(screenRender);
 
       remoteRender.requestLayout();
       screenRender.requestLayout();

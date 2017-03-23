@@ -38,10 +38,10 @@ import static android.app.Activity.RESULT_OK;
 import static com.viettel.ipcclib.RtcClient.appRtcClient;
 import static com.viettel.ipcclib.RtcClient.peerConnectionClient;
 import static com.viettel.ipcclib.RtcClient.peerConnectionClient2;
-import static com.viettel.ipcclib.RtcClient.rootEglBase;
-import static com.viettel.ipcclib.RtcClient.roomConnectionParameters;
-import static com.viettel.ipcclib.RtcClient.signalingParam;
 import static com.viettel.ipcclib.RtcClient.peerConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.roomConnectionParameters;
+import static com.viettel.ipcclib.RtcClient.rootEglBase;
+import static com.viettel.ipcclib.RtcClient.signalingParam;
 
 public class ChatTextFragment extends WSFragment implements View.OnClickListener, TextWatcher, ConversationView {
   EditText mContentChatEt;
@@ -297,7 +297,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
 //      @Override
 //      public void run() {
     appendMessage(mChatActivity.getString(R.string.no_agent_available), Message.Type.NOTICE);
-    setConnected(false);
+//    setConnected(false);
 //      }
 //    });
   }
@@ -321,7 +321,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
     mHanlder.post(new Runnable() {
       @Override
       public void run() {
-        setConnected(false);
+//        setConnected(false);
       }
     });
 
@@ -360,7 +360,8 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
       @Override
       public void run() {
 //        Toast.makeText(mChatActivity, R.string.end_video, Toast.LENGTH_SHORT).show();
-       mChatActivity.hangoutVideoCall();
+        mChatActivity.hangoutVideoCall();
+//        disconnect(true);
       }
     });
   }
@@ -378,7 +379,7 @@ public class ChatTextFragment extends WSFragment implements View.OnClickListener
         if (mChatActivity == null) return;
         mTopMessageTv.setText(R.string.channel_error_title);
         mTopMessageTv.setTextColor(ContextCompat.getColor(mChatActivity, R.color.error));
-        setConnected(false);
+//        setConnected(false);
       }
     });
   }
