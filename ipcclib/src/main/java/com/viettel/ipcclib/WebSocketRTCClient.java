@@ -788,14 +788,14 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         "                           \"username\": \"\",\n" +
         "                           \"password\": \"\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"stun:10.60.96.57:8488\"\n" +
+        "                                    \"stun:203.190.170.131:49352\"\n" +
         "                                    ]\n" +
         "                           },\n" +
         "                           {\n" +
         "                           \"username\": \"viettel\",\n" +
         "                           \"password\": \"123456aA\",\n" +
         "                           \"urls\": [\n" +
-        "                                    \"turn:10.60.96.57:8488\"\n" +
+        "                                    \"turn:203.190.170.131:49352\"\n" +
         "                                    ]\n" +
         "                           }\n" +
         "                           ]\n" +
@@ -803,7 +803,8 @@ public class WebSocketRTCClient implements AppRTCClient, WebSocketChannelClient.
         "    },\n" +
         "    \"result\": \"SUCCESS\"\n" +
         "}\n";
-    //203.190.170.131:49352
+    // PreLive: 203.190.170.131:49352
+    // Dev:  10.60.96.57:8488
     JSONObject appConfig = null;
     try {
       appConfig = new JSONObject(dataJsonTurn);
