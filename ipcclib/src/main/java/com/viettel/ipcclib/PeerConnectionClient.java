@@ -16,7 +16,6 @@ import org.webrtc.CameraEnumerationAndroid;
 import org.webrtc.DataChannel;
 import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
-import org.webrtc.Logging;
 import org.webrtc.MediaCodecVideoEncoder;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaConstraints.KeyValuePair;
@@ -42,7 +41,6 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -512,7 +510,7 @@ public class PeerConnectionClient {
           "OfferToReceiveAudio", "true"));
     }else{
       sdpMediaConstraints.mandatory.add(new KeyValuePair(
-          "OfferToReceiveAudio", "false"));
+          "OfferToReceiveAudio", "true"));
     }
 
     if (videoCallEnabled) {
@@ -520,7 +518,7 @@ public class PeerConnectionClient {
           "OfferToReceiveVideo", "true"));
     } else {
       sdpMediaConstraints.mandatory.add(new KeyValuePair(
-          "OfferToReceiveVideo", "false"));
+          "OfferToReceiveVideo", "true"));
     }
   }
 
@@ -560,10 +558,10 @@ public class PeerConnectionClient {
 
     // Set default WebRTC tracing and INFO libjingle logging.
     // NOTE: this _must_ happen while |factory| is alive!
-    Logging.enableTracing(
-        "logcat:",
-        EnumSet.of(Logging.TraceLevel.TRACE_DEFAULT),
-        Logging.Severity.LS_INFO);
+//    Logging.enableTracing(
+//        "logcat:",
+//        EnumSet.of(Logging.TraceLevel.TRACE_DEFAULT),
+//        Logging.Severity.LS_INFO);
 
     mediaStream = factory.createLocalMediaStream("ARDAMS");
     if (videoCallEnabled && !isScreenSharingConnection) {
@@ -574,8 +572,7 @@ public class PeerConnectionClient {
         cameraDeviceName = frontCameraDeviceName;
       }
       Log.d(TAG, "Opening camera: " + cameraDeviceName);
-      videoCapturer = VideoCapturerAndroid.create(cameraDeviceName, null,
-          peerConnectionParameters.captureToTexture ? renderEGLContext : null);
+      videoCapturer = VideoCapturerAndroid.create(cameraDeviceName, null,false);
       if (videoCapturer == null) {
         reportError("Failed to open camera");
         return;
